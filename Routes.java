@@ -319,6 +319,30 @@ public class Routes {
         return evacFlow;
     }
     
+    /*
+     * distribute pseudorandom flow across flow network
+     */
+    public void populate(int population) {
+        Random rand = new Random();
+        Iterable<FlowEdge> list = evacFlow.edges();
+        int ct = 0; // initialize count
+        
+        // add flow to edges until flow represents entire population
+        while (ct < population) {
+            for (FlowEdge f : list) {
+                // random int on domain [0, # of vertices)
+                int e = rand.nextInt(evacFlow.V() - 1);
+                // one-in-(# of edges) chance that person is placed on edge
+                // which eliminates bias of edges that are considered 1st in iteration
+                if (f.from() < e) {
+                    f.addFlow(1.0);
+                    ct++;
+                }
+            }      
+        }
+    }
+            
+    
     
     
     /*
