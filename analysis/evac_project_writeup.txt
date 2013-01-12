@@ -1,0 +1,76 @@
+cos323 Final Project Write-up
+
+Project Name:  Route Evacuation Analysis
+Authors: David Paulk, Allan Jabri and Michael Newman
+Professor: Szymon Rusinkiewicz
+Due Date: 1/15/2012
+
+_______________________________________________________________________________________
+
+Approach:
+	For our project, we wanted to analyze the different factors that affect a large quantity of people fleeing from some sort of slowly spreading hazardous detonation.
+We assume for our project that the body of people are evacuating by vehicle along a map of roadways containing a detonation site.  Given this scenario, we implemented
+different classes describing the map of roadways, randomized flow of evacuators along them, simulation for different population and site parameters, and visualization
+of flow after detonation events for a clearer explanation for what led to our eventual conclusions from the simulated trials along the road networks.
+
+_______________________________________________________________________________________
+
+Code:
+
+Routes.java-
+To represent the roadway maps as data structured that can be incremented through characteristics such as capacity and population flow values, a class called Routes.java reads in roadways, creates a flow network for them, and updates transfer of flow during each time-step in simulation.  Using the edge weighted directed graph instance, roads were represented by directed and weighted edges, while road-intersections were represented by the graph's vertices.
+	These road-intersections vertices were given integer values as a basic graphic representation of a network of points would, but for Routes.java, each integer in the digraph corresponds with an 'Intersection' node given by a symbol table key (Integer) value (Intersection) pair.  For each Intersection node, x and y-coordinate values are stored, as well as each directed road flowing into and out of the given Intersection.  To quickly output the Intersections adjacent to a given Intersection, a second symbol table
+ was created containing Intersection keys paired with an Iterable list of adjacent Intersection values.  This is most heavily used in creation of FlowEdge instances for the
+	FlowNetwork.  In the FlowNetwork, people are randomly added to roads with the constraining factors of population and road capacities.  Last, a FordFulkerson instance is created using the FlowNetwork input to algorithmically analyze the mincut and maxflow of a given road network.  This is the output for each new population and road network scenario that is collected as data from simulation, discussed in more depth in the the following parts.
+
+
+Point.java- 
+	Creates a point with a pair of coordinates.  It is used in Intersection.java as a characteristic of a given intersection and also in its compareTo() method so that
+Intersections may be used as keys in a symbol table.  For the comparison of any two
+Intersections, the points unique to each of the two intersection are compared by y-value, breaking ties by x-value if the y-values are equal.  Also gives coordinates the ability
+to be compared by slope with respect to an angle-vertex if desired.
+
+Intersection.java-
+	Creates an intersection that is used as a vertex-node in a flow network.  Each
+Intersection is characterized by a coordinate pair for spatial representation, whether
+that road is horizontal or vertical for fast input parsing, and a series of incoming and
+outgoing directed edges which are roads in the map upon which evacuating traffic can travel.
+
+Simulation.java-
+	Creates evacuation simulation for a certain number of trials and population size as parameter values.  Each individual simulation runs until a final tally has been
+determined for who has survived and who has died from the hazard during the evacuation.
+
+Explosion.java-
+	Algorithm which describes the rate of hazard radius increase for a gas-bomb
+explosion from a researched model.
+
+DrawExplosion.java-
+	Animates (through StdDraw.java) the ring of hazard radius expanding about
+a focal detonation point.
+
+Stats.m-
+	Calculates and outputs the sample mean, variance, and standard deviation
+for proportion of dead or alive persons in the population after all simulation 
+trials are run and given as array-type input.  Also plots the Gaussian distribution
+by the best computational formula given to us from the Statistics lecture this term.
+
+________________________________________________________________________________________
+
+	The code for the Route Evacuation Analysis Project was broken up into three general parts: 
+		1) data representation of routes (digraph, flow network) compatible with various route map and population parameters
+		2) simulation using varied parameter values on the digitized routes
+		3) visualization for a clearer depiction of the concepts our project aims to present through varied detonation scenarios
+
+	Part 1 (Road Network Construction; Constrained Optimization Analysis Under Pseudorandom Flow Conditions)
+		
+	Part 2 (Parameter Variant Evacuation Simulation)
+
+	Part 3 (Network Flow and Detonation Visualization)
+
+________________________________________________________________________________________
+
+Data:
+
+________________________________________________________________________________________
+
+Analysis:
