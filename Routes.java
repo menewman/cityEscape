@@ -63,24 +63,19 @@
 import java.util.Random;
 
 public class Routes {
-    
-       
-    /*
-     * makes Node for a vertex on the directed graph
-     */ 
-    
-    
-    /*
-     * Intersection data structures
-     */
+    // Intersection data structures
     ST<Point, Intersection> joints; // indexed by detonation distance  
     ST<Point, Integer> index; // integer indices for digraph
     ST<Integer, Point> reverseIndex;
-    int numIntersections;
-    int numEdges;
-    int population;
     
-    private static EdgeWeightedDigraph evacGraph; // weighted graph of road network
+    private int numIntersections;
+    private int numEdges;
+    private int population;
+    private int alive;
+    private int dead;
+    private int escaped;
+
+    private EdgeWeightedDigraph evacGraph; // weighted graph of road network
     private FlowNetwork evacFlow; // desribes flow of people through routes
     
     // detonation information for method use
@@ -88,8 +83,6 @@ public class Routes {
     private double detX; // x-coordinate of detonation
     private double detY; // y-coordinate of detonation
     private Point det; // location of detonation
-    
-      
     
     /*
      * creates a graphical evacuation map
@@ -101,7 +94,10 @@ public class Routes {
         In in = new In(filename); // initialize source of input
         String[] alert = in.readLine().trim().split("\\s+");
         population = initPop;
-        
+        alive = population;
+        dead = 0;
+        escaped = 0;
+
         // ALERT LINE TESTED AND WORKS
         
         // radius of hazard region and a location of detonation
@@ -260,6 +256,13 @@ public class Routes {
         }
         return evacGraph;
     }
+
+    // accessor methods
+    public int getAlive() { return alive; }
+    public int getDead()  { return dead;  }
+    public int getEscaped() { return escaped; }
+    public int getPop() { return population; }
+
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
         StdDraw.setScale(-5, 5);
@@ -337,20 +340,31 @@ public class Routes {
             rand*hazardRadius/(hazardRadius + detDist(p));
         return desparation;
     }
-    // update flownetwork
+
+    // update flow network
     public void nextState() {
-        
+        // copy the flow network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
+
         ST<Integer, Double> randoms = new ST<Integer, Double>();
+<<<<<<< HEAD
         ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
 
         for (int i = 0; i < joints.size(); i++) {
             update(i, randoms, nextFlow);
+=======
+        //ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
+        
+        int current = 0;
+        for (int i : reverseIndex.keys()) {
+            nextJoints.put(p, update(new Intersection(joints.get(p)), randoms, nextFlow));
+            current++;
+>>>>>>> 84c3d53d28746184744a275a9e8bc4be366496b3
         }
         
         // refresh ST and flownetwork
-        joints = nextJoints;
-        buildNetwork(joints);
+        //joints = nextJoints;
+        //buildNetwork(joints);
     }
     
     /*
