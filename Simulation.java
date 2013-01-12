@@ -40,10 +40,10 @@ public class Simulation {
             // update the hazard radius in Routes
             routes.setHazardRadius(hazardRadius);
 
-            // as far as I know, this isn't actually a method yet
-            routes.updateGraph();
+            routes.nextState();
 
             // visualize results?
+            routes.draw();
 
             // keep a killed/escaped tally?
 
