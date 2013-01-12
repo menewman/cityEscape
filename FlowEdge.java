@@ -37,6 +37,10 @@ public class FlowEdge {
         this.flow      = flow;
     }
 
+    public double canMove() {
+        if (capacity > flow) return flow;
+        else return capacity;
+    }
     // copy constructor
     public FlowEdge(FlowEdge e) {
         this.v         = e.v;
@@ -44,6 +48,8 @@ public class FlowEdge {
         this.capacity  = e.capacity;
         this.flow      = e.flow;
     }
+    
+    
 
     // accessor methods
     public int from()         { return v;        }  
@@ -63,6 +69,7 @@ public class FlowEdge {
         else if (vertex == w) return capacity - flow;
         else throw new RuntimeException("Illegal endpoint");
     }
+    
     // added method that lets us set the flow
     public void setFlow(double newFlow) {
         this.flow = newFlow;

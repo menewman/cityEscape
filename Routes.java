@@ -343,11 +343,9 @@ public class Routes {
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
         ST<Integer, Double> randoms = new ST<Integer, Double>();
         ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
-        
-        int current = 0;
-        for (int i : reverseIndex.keys()) {
-            nextJoints.put(p, update(new Intersection(joints.get(p)), randoms, nextFlow));
-            current++;
+
+        for (int i = 0; i < joints.size(); i++) {
+            update(i, randoms, nextFlow);
         }
         
         // refresh ST and flownetwork
@@ -358,53 +356,39 @@ public class Routes {
     /*
      * updates flow incident of a single intersection
      */
-    public Intersection update(Intersection i, ST<Integer, Double> randoms) {
+    public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
         
-        int graphIndex = index.get(i.p);
-        int inFlow = i.inFlow();
-        // use detDist to determine if people die/flow is eliminated
-        if (detDist(i.p) < hazardRadius) {
-            population -= inFlow;
-            for (FlowEdge e : i.inEdges) {
-                e.setFlow(0);
+        int inFlow = 0;
+        // sum inflow
+        for (FlowEdge e : evacFlow.incoming(i)) {
+            if (e.flow() > e.capacity()) inFlow += e.capacity();
+            else {
+                inFlow += e.flow();
             }
         }
         
-        int edges = 0;
-        double sum = 0;
-        double rand = 0;
-        
-        // randomize where cars will go and make sure numbers are consistent
-        for (FlowEdge e : i.outEdges) {
-           rand = Math.random();
-           sum += rand;
-           randoms.put(edges, rand);
-           edges++;  
-           //e.setFlow(0);
+        // use detDist to determine if people die/flow is eliminated
+        if (detDist(reverseIndex.get(i)) < hazardRadius) {
+            population -= inFlow;
+            for (FlowEdge e : f.incoming(i)) {
+                e.setFlow(0);
+            }
         }
 
-        int counter = 0;
         double distribution;
         double excess;
         double delta;
-        
-        // model traffic
-        for (FlowEdge from : i.inEdges) {
-            excess = 0;
-            
-            for (FlowEdge to : i.outEdges) {
-                distribution = randoms.get(counter);
+        double sum;
+        double fractionReceived = 0;
+        // model random traffic
+        for (FlowEdge to : f.outgoing(i)) {
+            sum = 0;
+            fractionReceived = Math.random();
+            for (FlowEdge from : evacFlow.incoming(i)) {
                 // distribution is normalized with 1/sum
-                delta = from.flow()*distribution*(1.0/sum);
-                if (to.capacity() < from.flow()) {
-                    to.addFlow(delta);
-                    from.addFlow(-1.0*delta);
-                }
-                else {
-                    to.addFlow(to.capacity());
-                    from.addFlow(-1.0*to.capacity());
-                    excess += delta - to.capacity();
-                }
+                delta = from.flow()*fractionReceived;
+                to.addFlow(delta);
+                from.addFlow(-1.0*delta);
             }
             
             // use awareness factor to determine preference in pseudorandom
@@ -414,7 +398,6 @@ public class Routes {
             // of time-step's effect through input intersection
             
         }
-        return i;
     }
     
     /*
