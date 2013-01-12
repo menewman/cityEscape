@@ -79,6 +79,7 @@ public class Routes {
     private FlowNetwork evacFlow; // desribes flow of people through routes
     
     // detonation information for method use
+    private Explosion exp; // instance of detonation
     private double hazardRadius; // radius of danger
     private double detX; // x-coordinate of detonation
     private double detY; // y-coordinate of detonation
@@ -265,7 +266,7 @@ public class Routes {
 
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
-        StdDraw.setScale(-5, 5);
+        StdDraw.clear();
         for (Point p : joints.keys()) {
             
             Intersection i = joints.get(p);
@@ -288,6 +289,15 @@ public class Routes {
                 StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
             }
         }
+
+        // draws update of hazard-radius with respect to detonation point    
+        StdDraw.setPenColor(StdDraw.RED);
+        StdDraw.setPenRadius(0.05);
+        StdDraw.point(0, 0);
+
+        StdDraw.setPenRadius(0.025);
+        StdDraw.circle(0, 0, hazardRadius);
+        StdDraw.show(300);
     }
               
     /*
@@ -316,6 +326,12 @@ public class Routes {
                 evacFlow.addEdge(j.get(p).inEdges.dequeue());  
             }
         }
+
+        // set explosion and standard draw window to illustrate full magnitude
+        exp = new Explosion(5.0); // 5 megaton explosion initialized
+        StdDraw.setXscale(-5, 5);
+        StdDraw.setYscale(-5, 5);
+
         return evacFlow;
     }
     
@@ -365,9 +381,11 @@ public class Routes {
         return desparation;
     }
 
-    // update flow network
+    /*
+     * update road network
+     */
     public void nextState() {
-        // copy the flow network with same vertices/edges/capacity but zero flow
+        // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
         ST<Integer, Double> randoms = new ST<Integer, Double>();
@@ -380,6 +398,7 @@ public class Routes {
         // refresh ST and flownetwork
         //joints = nextJoints;
         //buildNetwork(joints);
+        draw(); // draw updated road network and hazard radius
     }
     
     /*
