@@ -347,19 +347,10 @@ public class Routes {
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
         ST<Integer, Double> randoms = new ST<Integer, Double>();
-<<<<<<< HEAD
         ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
 
         for (int i = 0; i < joints.size(); i++) {
             update(i, randoms, nextFlow);
-=======
-        //ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
-        
-        int current = 0;
-        for (int i : reverseIndex.keys()) {
-            nextJoints.put(p, update(new Intersection(joints.get(p)), randoms, nextFlow));
-            current++;
->>>>>>> 84c3d53d28746184744a275a9e8bc4be366496b3
         }
         
         // refresh ST and flownetwork
