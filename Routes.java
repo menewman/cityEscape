@@ -6,8 +6,8 @@
  * Execution: java Routes roads.txt
  * 
  * Dependencies:
- * Point.java, DirectedEdge.java, EdgeWeightedDigraph.java, FlowEdge.java
- * FlowNetwork.java, FordFulkerson.java, ST.java, In.java
+ * In.java, FlowNetwork.java, ST.java, EdgeWeightedDigraph.java
+ * Intersection.java, Explosion.java, drawExplosion.java, Point.java
  * 
  * Description: Routes.java shows the routes that a population can
  * travel along during an evacuation scenario.  The routes created
@@ -335,6 +335,7 @@ public class Routes {
         return evacFlow;
     }
     
+    
     /*
      * distribute pseudorandom flow across flow network
      */
@@ -345,22 +346,26 @@ public class Routes {
         
         // add flow to edges until flow represents entire population
         while (ct < population) {
-            for (FlowEdge f : list) {
-                // random int on domain [0, # of vertices)
-                int e = rand.nextInt(evacFlow.V() - 1);
-                // one-in-(# of edges) chance that person is placed on edge
-                // which eliminates bias of edges that are considered 1st in iteration
-                if (f.from() < e) {
-                    f.addFlow(1.0);
-                    ct++;
-                }
-            }      
-        }
+            // random int on domain [0, # of vertices)
+            int ind = rand.nextInt(reverseIndex.size() - 1);
+            Queue<FlowEdge> inFlow = joints.get(reverseIndex.get(ind)).inEdges;
+            // edge that gets flow does not matter; all flow is summed in update
+            if (!inFlow.isEmpty()) {
+                FlowEdge e = inFlow.peek();
+                e.addFlow(1);
+                ct++;
+            }
+            /* one-in-(# of edges) chance that person is placed on edge
+            // which eliminates bias of edges that are considered 1st in iteration
+            if (f.from() < e) {
+                f.addFlow(1);
+                ct++;
+            }*/
+        }      
     }
             
     
-    
-    
+      
     /*
      * distance from detonation to given point on coordinate map
      */ 
@@ -369,6 +374,7 @@ public class Routes {
             + (detY - p.y())*(detY - p.y());
         return Math.sqrt(distSq);
     }
+    
     
     /*
      * probablility function for whether or not smart choice of direction
@@ -380,9 +386,10 @@ public class Routes {
             rand*hazardRadius/(hazardRadius + detDist(p));
         return desparation;
     }
+    
 
     /*
-     * update road network
+     * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
         // copy the road network with same vertices/edges/capacity but zero flow
@@ -485,6 +492,13 @@ public class Routes {
         this.hazardRadius = r;
     }
     
+    /*
+     * hazard never goes past 2/3's distance of farthest intersection
+     */
+    public double hazardLimit() {
+        return detDist(joints.max()) * ( 2 / 3 ) ;
+    }
+    
     /* 
      * is point on coordinate map is within a hazardous range?
      */
@@ -494,16 +508,41 @@ public class Routes {
     
     
     /*
-     * test method
+     * test method (simulation test)
      */
     public static void main(String[] args)
     {
         // gives name of file containing data for street routes
-        Routes test = new Routes(args[0], Integer.parseInt(args[1]));
-        test.buildNetwork(test.joints);
-        FlowNetwork flow = test.roadNetwork(); // before flow
-        test.draw();
-        StdOut.println(flow.toString());                            
+        int population = Integer.parseInt(args[1]);
+        Routes test = new Routes(args[0], population);
         
+        // build the flow network
+        test.buildNetwork(test.joints);
+        
+        // save, print and draw copy of road network before adding any flow
+        FlowNetwork emptyNetwork = test.roadNetwork();
+        StdOut.println("Flow-empty Network: ");
+        StdOut.println(emptyNetwork.toString());
+        StdOut.println();
+        test.draw();
+        
+        // save, print and draw copy of flow-initialized road network       
+        test.populate(population); // add randomized initial flow to road network
+        FlowNetwork initNetwork = test.roadNetwork();
+        StdOut.println("Flow-initialized Network: ");
+        StdOut.println(initNetwork.toString());
+        StdOut.println();
+        
+        /*
+        // iterate through time-steps until final scenario has been determined
+        int t = 0;
+        test.setHazardRadius(0);
+        double limit = test.hazardLimit();
+        while (test.hazardRadius < limit) {
+            test.nextState();
+            t++;
+            test.setHazardRadius(t);
+        }
+        */
     }
 }
