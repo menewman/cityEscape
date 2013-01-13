@@ -8,10 +8,14 @@ Due Date: 1/15/2012
 _______________________________________________________________________________________
 
 Approach:
-	For our project, we wanted to analyze the different factors that affect a large quantity of people fleeing from some sort of slowly spreading hazardous detonation.
-We assume for our project that the body of people are evacuating by vehicle along a map of roadways containing a detonation site.  Given this scenario, we implemented
-different classes describing the map of roadways, randomized flow of evacuators along them, simulation for different population and site parameters, and visualization
-of flow after detonation events for a clearer explanation for what led to our eventual conclusions from the simulated trials along the road networks.
+	For our project, we wanted to analyze the different factors that affect a large quantity of people fleeing from a hazardous bomb detonation.  We assume for our project that the mass of people are evacuating by vehicle along a series of routes that make up a road network.  This road network consists of roads, intersections, and a detonation site.  Given this scenario, we implemented different classes describing the map of roadways, randomized flow of evacuators along them, simulation with the ability to change population, awareness and speed parameters, and visualization of the flow of evacuators after detonation as the radius of hazard due to the explosion grows.
+
+	The roads in this evacuation simulation are edges with values for flow, capacity, a 'to'-node and a 'from'-node.  These nodes that characterize the
+	beginning and the end of a road-edge are Intersection nodes.  These Intersection nodes are a class of Objects that contain a Point Object-type coordinate pair, a queue for the flow of edges directed at the Intersection, and a queue for the flow of edges directed away from the Intersection.  The detonation site is simply a coordinate pair at which the Explosion instance is centered at its creation, upon which the 'safe-zone' transgresses from embodying the entire road network to embodying none of the road network.  By the time that the hazard radius has expanded past all reachable edges and vertices in the road network, the instance of Simulation for that particular input terminates, and the numbers of dead and alive people post-Explosion in the population are tallied.  For these tallies, the dead group consists of all flow that was surpassed by the radius of hazard before it could reach the virtual sink of the flow network (city limits, where there are no further edges from the detonation site/ origin).
+
+	The simulation of evacuation is a time-driven, and can be run for various parameter values.  The population can be any such that its value does not exceed the total capacity of the road network, in which case there could be no movement of flow, and everyone in the population would consequently be wiped out by the Explosion instance.
+
+	The evacuation process along the road network is illustrated in parallel with the expansion of the hazard radius about the detonation site.  The visualization of these two things are crucial because they both involve algorithms specific to the road network characteristics and other parameter inputs. The evacuation process involves several parameter-sensitive algorithms, including flow updates and an 'awareness factor' relating to the path decision-making of people along various roads depending on the distance of the closest point on the hazard radius circle.  The expansion of the hazard radius given by the output of Explosion is also a parameter-sensitive algorithm, being a function that is both dependent of input 't' and non-linear.
 
 _______________________________________________________________________________________
 
@@ -23,6 +27,11 @@ To represent the roadway maps as data structured that can be incremented through
  was created containing Intersection keys paired with an Iterable list of adjacent Intersection values.  This is most heavily used in creation of FlowEdge instances for the
 	FlowNetwork.  In the FlowNetwork, people are randomly added to roads with the constraining factors of population and road capacities.  Last, a FordFulkerson instance is created using the FlowNetwork input to algorithmically analyze the mincut and maxflow of a given road network.  This is the output for each new population and road network scenario that is collected as data from simulation, discussed in more depth in the the following parts.
 
+Intersection.java-
+	Creates an intersection that is used as a vertex-node in a flow network.  Each
+Intersection is characterized by a coordinate pair for spatial representation, whether
+that road is horizontal or vertical for fast input parsing, and a series of incoming and
+outgoing directed edges which are roads in the map upon which evacuating traffic can travel.
 
 Point.java- 
 	Creates a point with a pair of coordinates.  It is used in Intersection.java as a characteristic of a given intersection and also in its compareTo() method so that
@@ -30,29 +39,17 @@ Intersections may be used as keys in a symbol table.  For the comparison of any 
 Intersections, the points unique to each of the two intersection are compared by y-value, breaking ties by x-value if the y-values are equal.  Also gives coordinates the ability
 to be compared by slope with respect to an angle-vertex if desired.
 
-Intersection.java-
-	Creates an intersection that is used as a vertex-node in a flow network.  Each
-Intersection is characterized by a coordinate pair for spatial representation, whether
-that road is horizontal or vertical for fast input parsing, and a series of incoming and
-outgoing directed edges which are roads in the map upon which evacuating traffic can travel.
-
 Simulation.java-
-	Creates evacuation simulation for a certain number of trials and population size as parameter values.  Each individual simulation runs until a final tally has been
-determined for who has survived and who has died from the hazard during the evacuation.
+	Creates evacuation simulation for a certain number of trials and population size as parameter values.  Each individual simulation runs until a final tally has been determined for who has survived and who has died from the hazard during the evacuation.
 
 Explosion.java-
-	Algorithm which describes the rate of hazard radius increase for a gas-bomb
-explosion from a researched model.
+	Algorithm which describes the rate of hazard radius increase for a gas-bomb explosion from a researched model.
 
 DrawExplosion.java-
-	Animates (through StdDraw.java) the ring of hazard radius expanding about
-a focal detonation point.
+	Animates (through StdDraw.java) the ring of hazard radius expanding about a focal detonation point.
 
 Stats.m-
-	Calculates and outputs the sample mean, variance, and standard deviation
-for proportion of dead or alive persons in the population after all simulation 
-trials are run and given as array-type input.  Also plots the Gaussian distribution
-by the best computational formula given to us from the Statistics lecture this term.
+	Calculates and outputs the sample mean, variance, and standard deviation for proportion of dead or alive persons in the population after all simulation trials are run and given as array-type input.  Also plots the Gaussian distribution by the best computational formula given to us from the Statistics lecture this term.
 
 ________________________________________________________________________________________
 
