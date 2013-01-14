@@ -67,7 +67,61 @@ ________________________________________________________________________________
 ________________________________________________________________________________________
 
 Data:
+ 
+ As a control test, we followed the 'Doubling-hypothesis' method of testing to find how
+ the ratio of dead to alive changed for different population parameter inputs, found through
+ 10 simulations of each population size.
 
+ For population size of 2^6
+
+            Dead Proportion    Alive Proportion
+     mean
+      var
+  std dev
+
+ For population size of 2^7
+
+            Dead Proportion    Alive Proportion
+     mean
+      var
+  std dev
+   
+ For population size of 2^8
+
+            Dead Proportion    Alive Proportion
+     mean
+      var
+  std dev
+
+ For population size of 2^9
+
+            Dead Proportion    Alive Proportion
+     mean
+      var
+  std dev
+
+ For population size of 2^10
+
+            Dead Proportion    Alive Proportion
+     mean
+      var
+  std dev
+
+ For the control test, a constant value for the awareness parameter was used.  Below, results
+ for the same test but with 4 different awareness levels are performed again.
+
+ ... 
 ________________________________________________________________________________________
 
 Analysis:
+
+The tests that were crucial to understanding the patterns in bottlenecks and the ratio of dead
+to alive post evacuation were the test of how doubling the population alone affects flow, and
+second, how the awareness level effects the efficiency of evacuation, and whether or not the 
+awareness level becomes increasingly important as the population size increases.
+
+Evacuation is a scenario that is important to the everyday lives of those who live or work in
+large urban environments.  One could simply imagine that the evacuation from the environment is
+not due to a hazardous detonation, but rather rush-hour after work or some high traffic scenario
+of the sort.  Such scenarios are crucial to analyze for understanding optimal efficiency of the
+evacuator and also the efficiency of the road network creator.
