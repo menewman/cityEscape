@@ -49,14 +49,11 @@ public class FlowEdge {
         this.flow      = e.flow;
     }
     
-    
-
     // accessor methods
     public int from()         { return v;        }  
     public int to()           { return w;        }  
     public double capacity()  { return capacity; }
     public double flow()      { return flow;     }
-
 
     public int other(int vertex) {
         if      (vertex == v) return w;
@@ -96,6 +93,10 @@ public class FlowEdge {
      */
     public static void main(String[] args) {
         FlowEdge e = new FlowEdge(12, 23, 3.14);
+        StdOut.println(e);
+        e.addFlow(2);
+        StdOut.println(e);
+        e.setFlow(0);
         StdOut.println(e);
     }
 
