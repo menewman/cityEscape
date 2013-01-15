@@ -366,8 +366,6 @@ public class Routes {
         }      
     }
             
-    
-      
     /*
      * distance from detonation to given point on coordinate map
      */ 
@@ -376,7 +374,6 @@ public class Routes {
             + (detY - p.y())*(detY - p.y());
         return Math.sqrt(distSq);
     }
-    
     
     /*
      * probablility function for whether or not smart choice of direction
@@ -402,12 +399,8 @@ public class Routes {
         for (int i = 0; i < joints.size(); i++) {
             update(i, randoms, nextFlow);
         }
-        
-        // refresh ST and flownetwork
-        //joints = nextJoints;
-        //buildNetwork(joints);
-        //draw(); // draw updated road network and hazard radius -- Commented out bc draw
-        //                                                should be called by Simulation -M
+
+        evacFlow = nextFlow;
     }
     
     /*
@@ -417,6 +410,7 @@ public class Routes {
         int inFlow = 0;
         // sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
+            //StdOut.println("INCOMING EDGE ALERT"); // DEBUG
             if (e.flow() > e.capacity()) inFlow += e.capacity();
             else {
                 inFlow += e.flow();
