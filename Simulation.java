@@ -5,6 +5,9 @@ public class Simulation {
 
     // runs a simulation taking a roadmap file, an initial bomb energy (in megatons),
     //     and an initial population as command-line arguments
+    //
+    // Usage Example:
+    // java Simulation roadmap.txt 25.0 1000
     public static void main(String[] args) {
         // read in a roadmap; default to unit_length test file
         String filename;
@@ -44,12 +47,19 @@ public class Simulation {
 
             // visualize results?
             routes.draw();
+            StdDraw.show(300);
 
             // keep a killed/escaped tally?
+            int alive = routes.getAlive();
+            int escaped = routes.getEscaped();
+            int dead = routes.getDead();
+            int pop = routes.getPop();
 
             // check other stop conditions?
             //   e.g., bomb radius exceeds max intersection distance,
             //         or all people are killed and/or escaped
+            if (alive == 0)
+                break;
         }
     }
 }
