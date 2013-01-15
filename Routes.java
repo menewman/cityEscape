@@ -234,7 +234,7 @@ public class Routes {
     /*
      * build an edge weighted digraph from intersections in joints ST
      */ 
-    private EdgeWeightedDigraph graph(ST<Point, Intersection> joints) {
+    public EdgeWeightedDigraph graph(ST<Point, Intersection> joints) {
         
         // copying symbol table to modify it *deep copy*
         ST<Point, Intersection> j = new ST<Point, Intersection>();
@@ -267,10 +267,8 @@ public class Routes {
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
         StdDraw.clear();
-        StdDraw.setXscale(-5, 5);
-        StdDraw.setYscale(-5, 5);
-
         for (Point p : joints.keys()) {
+            
             Intersection i = joints.get(p);
             StdDraw.setPenRadius(0.005);
             StdDraw.point(p.x(), p.y());
@@ -295,20 +293,18 @@ public class Routes {
         // draws update of hazard-radius with respect to detonation point    
         StdDraw.setPenColor(StdDraw.RED);
         StdDraw.setPenRadius(0.05);
-        //StdDraw.point(0, 0); // is the detonation point always the origin?
-        StdDraw.point(detX, detY);
+        StdDraw.point(0, 0);
 
         StdDraw.setPenRadius(0.025);
-        //StdDraw.circle(0, 0, hazardRadius);
-        StdDraw.circle(detX, detY, hazardRadius);
-        //StdDraw.show(300); // animation can be done in Simulation -- M
+        StdDraw.circle(0, 0, hazardRadius);
+        StdDraw.show(300);
     }
               
     /*
      * create flow network for evacuation directed away from
      * detonation towards safe distance
      */ 
-    private FlowNetwork buildNetwork(ST<Point, Intersection> joints) {
+    public FlowNetwork buildNetwork(ST<Point, Intersection> joints) {
         
         // ****** not sure if we need to do the +2, but its kept until we figure out how to represent escape routes + source
         evacFlow = new FlowNetwork(numIntersections + 2);
@@ -331,14 +327,10 @@ public class Routes {
             }
         }
 
-        /*
         // set explosion and standard draw window to illustrate full magnitude
         exp = new Explosion(5.0); // 5 megaton explosion initialized
         StdDraw.setXscale(-5, 5);
         StdDraw.setYscale(-5, 5);
-        */
-        // Commented out, since draw code belongs in draw(), and explosions are initialized in Simulation
-        // --M
 
         return evacFlow;
     }
@@ -356,14 +348,24 @@ public class Routes {
         while (ct < population) {
             // random int on domain [0, # of vertices)
             int ind = rand.nextInt(reverseIndex.size() - 1);
-            
-            // find number of in-flow edges
-            Intersection sect = joints.get(reverseIndex.get(ind));
-            sect.inFlow++;
-            ct++;
-        }
+            Queue<FlowEdge> inFlow = joints.get(reverseIndex.get(ind)).inEdges;
+            // edge that gets flow does not matter; all flow is summed in update
+            if (!inFlow.isEmpty()) {
+                FlowEdge e = inFlow.peek();
+                e.addFlow(1);
+                ct++;
+            }
+            /* one-in-(# of edges) chance that person is placed on edge
+            // which eliminates bias of edges that are considered 1st in iteration
+            if (f.from() < e) {
+                f.addFlow(1);
+                ct++;
+            }*/
+        }      
     }
             
+    
+      
     /*
      * distance from detonation to given point on coordinate map
      */ 
@@ -390,7 +392,6 @@ public class Routes {
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
-        StdOut.println("reached nextState");
         // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
@@ -525,18 +526,23 @@ public class Routes {
         StdOut.println();
         test.draw();
         
-        // initialize flow in the road network       
+        // save, print and draw copy of flow-initialized road network       
         test.populate(population); // add randomized initial flow to road network
+        FlowNetwork initNetwork = test.roadNetwork();
+        StdOut.println("Flow-initialized Network: ");
+        StdOut.println(initNetwork.toString());
+        StdOut.println();
         
+        /*
         // iterate through time-steps until final scenario has been determined
         int t = 0;
         test.setHazardRadius(0);
         double limit = test.hazardLimit();
-        StdOut.println("hazard limit is: " + test.hazardLimit());
-        for (int i = 0; i < population; i++) {
+        while (test.hazardRadius < limit) {
             test.nextState();
             t++;
             test.setHazardRadius(t);
         }
+        */
     }
 }
