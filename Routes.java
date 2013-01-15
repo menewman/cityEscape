@@ -230,6 +230,7 @@ public class Routes {
             joints.put(fromPoint, from);
         }
         this.buildNetwork(joints);
+        //this.evacFlow = new FlowNetwork(evacFlow);
         this.populate(initPop);
     }
         
@@ -406,6 +407,10 @@ public class Routes {
         // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
         
+        // DEBUG
+        //StdOut.println("evacFlow's E, V: " + evacFlow.E() + " " + evacFlow.V());
+        //StdOut.println("nextFlow's E, V: " + nextFlow.E() + " " + nextFlow.V());
+
         for (int i = 0; i < joints.size(); i++) {
             update(i, nextFlow);
         }
@@ -448,14 +453,16 @@ public class Routes {
             //StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             // DEBUG -> this doesn't account for people waiting at overcapacity edges
 
-            dead += inFlow;
-            alive -= inFlow;
-            /*for (FlowEdge e : f.incoming(i)) {
+            //dead += inFlow;
+            //alive -= inFlow;
+            for (FlowEdge e : f.incoming(i)) {
                 // this does it edge by edge and accounts for all cars at the intersection
                 // possible bug; counting for cars at the intersection is delayed
                 // because the time step may gloss over distances.
+                dead += e.flow();
+                alive -= e.flow();
                 e.setFlow(0);
-            }*/
+            }
             return;
         }
 
@@ -474,18 +481,15 @@ public class Routes {
             //StdOut.println("THESE PEOPLE ARE ALIVE: " + inFlow); // DEBUG
 
         double dist; //distribution
-        double specialK; // if we want to change the range from which random probabilities can be picked
-        double delta;
         double sum = 0;
-        int counter = 0;
         
+        // count outgoing edges
         for (FlowEdge to : f.outgoing(i)) {
             outs++;
         }
 
+        // calculate the proportion of flow going to each outgoing edge
         double[] distribution = new double[outs];
-
-        // fraction of an incoming street going to each outgoing street
         for (int j = 0; j < outs; j++) {
             dist = Math.random();
             distribution[j] = dist;
@@ -504,13 +508,13 @@ public class Routes {
         else if ((outflowSum < inFlow) && (outs == 0)) {
             Iterator<FlowEdge> itr1 = evacFlow.incoming(i).iterator();
             Iterator<FlowEdge> itr2 = f.incoming(i).iterator();
-            while (itr1.hasNext())
+            while (itr2.hasNext())
                 itr2.next().setFlow(itr1.next().flow());
             return;
         }
 
         // model random traffic
-        counter = 0;
+        int counter = 0;
         for (FlowEdge to : f.outgoing(i)) {
                 // distribution is normalized with 1/sum
                 

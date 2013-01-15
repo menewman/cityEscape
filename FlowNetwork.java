@@ -25,13 +25,14 @@ public class FlowNetwork {
     // but flow of zero on all edges
     public FlowNetwork(FlowNetwork fnet) {
         this(fnet.V);
-        for (Bag<FlowEdge> b : fnet.adj) {
-            for (FlowEdge fe : b) {
+        //for (Bag<FlowEdge> b : fnet.adj) {
+        for (int i = 0; i < V; i++) {
+            //Bag<FlowEdge> b = fnet.adj[i];
+            for (FlowEdge fe : fnet.incoming(i)) {
                 int v = fe.from();
                 int w = fe.to();
                 double capacity = fe.capacity();
-                double flow = 0;
-                addEdge(new FlowEdge(v, w, capacity, flow));
+                addEdge(new FlowEdge(v, w, capacity));
             }
         }
     }    
