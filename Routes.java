@@ -61,6 +61,7 @@
  */
 
 import java.util.Random;
+import java.awt.Font.*;
 
 public class Routes {
     // Intersection data structures
@@ -145,9 +146,9 @@ public class Routes {
             double roadLength = Double.parseDouble(fields[6]);
             double capacity = roadWidth*roadLength;
             
-            for (int tt = 0; tt < fields.length; tt++) {
-                StdOut.println("fieldval " + tt + ": " + fields[tt]);
-            }
+//            for (int tt = 0; tt < fields.length; tt++) {
+//                StdOut.println("fieldval " + tt + ": " + fields[tt]);
+//            }
             
             // add to, create or overwrite connection to intersections
             double fromDist = detDist(fromPoint);
@@ -227,13 +228,10 @@ public class Routes {
             joints.put(toPoint, to);
             joints.put(fromPoint, from);
         }
-
         this.buildNetwork(joints);
         this.populate(initPop);
     }
-    
-    
-    
+        
     /*
      * build an edge weighted digraph from intersections in joints ST
      */ 
@@ -267,30 +265,44 @@ public class Routes {
     public int getEscaped() { return escaped; }
     public int getPop() { return population; }
 
+    // helper method
+    public Point midpoint(double x1, double y1, double x2, double y2)
+    {
+        return new Point(0.5*(x1 + x2), 0.5*(y1 + y2));
+    }
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
         StdDraw.clear();
-        for (Point p : joints.keys()) {
+        Point midpoint;
+//        StdDraw.Font f = new Font("SansSerif", Font.PLAIN, 10);
+//        StdDraw.setFont(f);
+        for (int i = 0; i < reverseIndex.size(); i++) {
             
-            Intersection i = joints.get(p);
-            StdDraw.setPenRadius(0.005);
-            StdDraw.point(p.x(), p.y());
-            for (FlowEdge e : i.outEdges) {
+            StdDraw.setPenRadius(0.01);
+            StdDraw.point(reverseIndex.get(i).x(), reverseIndex.get(i).y());
+            for (FlowEdge e : evacFlow.outgoing(i)) {
                 StdDraw.setPenRadius(e.capacity()*0.001);
                 StdDraw.setPenColor(StdDraw.BLUE);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
                 StdDraw.setPenRadius(e.flow()*0.001);
                 StdDraw.setPenColor(StdDraw.RED);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                String stats = e.flow() + " / " + e.capacity();
+                midpoint = midpoint(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.setPenColor(StdDraw.BLACK);
+                StdDraw.text(midpoint.x(), midpoint.y(), stats);
             }
-            for (FlowEdge e : i.inEdges) {
-                StdDraw.setPenRadius(e.capacity()*0.001);
-                StdDraw.setPenColor(StdDraw.BLUE);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-                StdDraw.setPenRadius(e.flow()*0.001);
-                StdDraw.setPenColor(StdDraw.RED);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-            }
+//            for (FlowEdge e : evacFlow.incoming(i)) {
+//                StdDraw.setPenRadius(e.capacity()*0.001);
+//                StdDraw.setPenColor(StdDraw.BLUE);
+//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                StdDraw.setPenRadius(e.flow()*0.001);
+//                StdDraw.setPenColor(StdDraw.RED);
+//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                String stats = e.flow() + " / " + e.capacity();
+//                midpoint = midpoint(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                StdDraw.text(midpoint.x(), midpoint.y(), stats);
+//            }
         }
 
         // draws update of hazard-radius with respect to detonation point    
@@ -393,11 +405,8 @@ public class Routes {
         // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
-        ST<Integer, Double> randoms = new ST<Integer, Double>();
-        //ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
-
         for (int i = 0; i < joints.size(); i++) {
-            update(i, randoms, nextFlow);
+            update(i, nextFlow);
         }
 
         evacFlow = nextFlow;
@@ -406,9 +415,9 @@ public class Routes {
     /*
      * updates flow incident of a single intersection
      */
-    public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
-        int inFlow = 0;
-        int outs = 0; // edge count
+    public void update(int i, FlowNetwork f) {
+        double inFlow = 0;
+        int outs = 0; // out edge count
         // sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
             outs++;
@@ -429,20 +438,26 @@ public class Routes {
                 // this does it edge by edge and accounts for all cars at the intersection
                 // possible bug; counting for cars at the intersection is delayed because the time step may gloss over distances.
                 // maybe we should have an event queue that allows us to know which radii we HAVE to hit
-                e.setFlow(0);
+                e.addFlow(-1.0*e.flow());
             }
             return;
         }
 
         // have people escaped the city?
         if (detDist(reverseIndex.get(i)) > this.hazardLimit()) {
-            escaped += inFlow;
-            alive -= inFlow;
-            for (FlowEdge e : f.incoming(i)) {
+            for (FlowEdge e : f.outgoing(i)) {
+                // changed it to subtract those that escape so we don't overwrite anything
+                escaped += e.flow();
+                alive -= e.flow();
+                e.addFlow(-1.0*e.flow());
+            }
+            //escaped += inFlow;
+            //alive -= inFlow;
+            //for (FlowEdge e : f.incoming(i)) {
                 // changed it to subtract those that escape so we don't overwrite anything
                 //e.addFlow(-1.0*inFlow);
-                e.setFlow(0); // changed it to set to zero just to see if it works
-            }
+               // e.setFlow(0); // changed it to set to zero just to see if it works
+            //}
             return;
         }
 
@@ -474,8 +489,8 @@ public class Routes {
             for (FlowEdge to : evacFlow.outgoing(i)) {
                 // distribution is normalized with 1/sum
                 
-                from.addFlow(-1.0*delta*distribution[counter]);
-                to.addFlow(delta*distribution[counter]);           
+                from.addFlow(-1.0*delta*distribution[counter]/sum);
+                to.addFlow(delta*distribution[counter]/sum);           
             }
             
             // use awareness factor to determine preference in pseudorandom
