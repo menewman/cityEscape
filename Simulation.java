@@ -50,24 +50,26 @@ public class Simulation {
             StdDraw.show(300);
 
             // keep a killed/escaped tally?
-            int alive = routes.getAlive();
-            int escaped = routes.getEscaped();
-            int dead = routes.getDead();
-            int pop = routes.getPop();
+            double alive = routes.getAlive();
+            double escaped = routes.getEscaped();
+            double dead = routes.getDead();
+            double pop = routes.getPop();
+            double total = alive+escaped+dead;
 
             StdOut.println("round " + i);
             StdOut.println("Alive:    " + alive);
             StdOut.println("Dead:     " + dead);
-            StdOut.println("Escaped:  " + escaped + '\n');
-
+            StdOut.println("Escaped:  " + escaped);
+            StdOut.println("Total:    " + total + '\n');
             // check other stop conditions?
             //   e.g., bomb radius exceeds max intersection distance,
             //         or all people are killed and/or escaped
-            if (alive == 0) {
+            if (alive <= 0) {
                 StdOut.println("\nSIMULATION COMPLETE");
-                StdOut.println("Alive:   " + alive);
+                /*StdOut.println("Alive:   " + alive);
                 StdOut.println("Dead:    " + dead);
                 StdOut.println("Escaped: " + escaped + '\n');
+                StdOut.println("Total:   " + escaped + '\n');*/
                 break;
             }
         }

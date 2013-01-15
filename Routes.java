@@ -72,10 +72,10 @@ public class Routes {
     
     private int numIntersections;
     private int numEdges;
-    private int population;
-    private int alive;
-    private int dead;
-    private int escaped;
+    private double population;
+    private double alive;
+    private double dead;
+    private double escaped;
 
     private EdgeWeightedDigraph evacGraph; // weighted graph of road network
     private FlowNetwork evacFlow; // desribes flow of people through routes
@@ -262,10 +262,19 @@ public class Routes {
     }
 
     // accessor methods
-    public int getAlive() { return alive; }
-    public int getDead()  { return dead;  }
-    public int getEscaped() { return escaped; }
-    public int getPop() { return population; }
+    public double getAlive() { return alive; }
+    public double getDead()  { return dead;  }
+    public double getEscaped() { return escaped; }
+    public double getPop() { return population; }
+
+    // sums up the flow on the graph
+    public double calculateLiveFlow() {
+        double aliveCounter = 0;
+        for (FlowEdge e : evacFlow.edges()) {
+            aliveCounter += e.flow();
+        }
+        return aliveCounter;
+    }
 
     // helper method
     public Point midpoint(double x1, double y1, double x2, double y2)
@@ -404,20 +413,9 @@ public class Routes {
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
-        // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
-        
-        // DEBUG
-        //StdOut.println("evacFlow's E, V: " + evacFlow.E() + " " + evacFlow.V());
-        //StdOut.println("nextFlow's E, V: " + nextFlow.E() + " " + nextFlow.V());
-
-        for (int i = 0; i < joints.size(); i++) {
+        for (int i = 0; i < joints.size(); i++)
             update(i, nextFlow);
-        }
-        //for (int i = 0; i < evacFlow.V(); i++)
-            //update(i, nextFlow);
-
-        //StdOut.println(nextFlow);
         evacFlow = nextFlow;
     }
     
@@ -426,42 +424,75 @@ public class Routes {
      */
     public void update(int i, FlowNetwork f) {
         double inFlow = 0;
+        double totalInflow = 0;
         int outs = 0; // out edge count
+        boolean isDead = false;
+        boolean isEscaped = false;
+        //double tempAlive
+        if (detDist(reverseIndex.get(i)) <= hazardRadius)
+            isDead = true;
+        if (detDist(reverseIndex.get(i)) > hazardLimit())
+            isEscaped = true;
+        
         // sum inflow
         Iterator<FlowEdge> iter1 = evacFlow.incoming(i).iterator();
         Iterator<FlowEdge> iter2 = f.incoming(i).iterator();
-
         while (iter1.hasNext()) {
-        //for (FlowEdge e : evacFlow.incoming(i)) {
-            // DEBUG <- the below code doesn't account for over-capacity edges,
-            //  but the code previously just didn't do anything with the extra flow!
             FlowEdge oldEdge = iter1.next();
             FlowEdge newEdge = iter2.next();
             
-            if (oldEdge.flow() <= oldEdge.capacity())
+            // put excess flow back onto the incoming edges
+            if (oldEdge.flow() <= oldEdge.capacity() || isDead) {
                 inFlow += oldEdge.flow();
+                if (isEscaped && !isDead) {
+                    escaped += oldEdge.flow();
+                    alive -= oldEdge.flow();
+                }
+                else if (isDead) {
+                    dead += oldEdge.flow();
+                    alive -= oldEdge.flow();
+                }
+            }
             else {
                 inFlow += oldEdge.capacity();
+                if (isEscaped) {
+                    escaped += oldEdge.flow();
+                    alive -= oldEdge.flow();
+                }
                 newEdge.addFlow(oldEdge.flow() - oldEdge.capacity());
             }
+            totalInflow += oldEdge.flow();
         }
-        if (inFlow == 0)
+
+        // DEBUG
+        //StdOut.println("Total Inflow at intersection " + i + ": " + totalInflow);
+        //"alive change: "
+        //"dead change:  "
+        //"escaped change: "
+        if (isDead || isEscaped)
             return;
-        
+
+        if (totalInflow == 0)
+            return;
+        /*
         // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
             //StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             // DEBUG -> this doesn't account for people waiting at overcapacity edges
 
-            //dead += inFlow;
-            //alive -= inFlow;
-            for (FlowEdge e : f.incoming(i)) {
-                // this does it edge by edge and accounts for all cars at the intersection
-                // possible bug; counting for cars at the intersection is delayed
-                // because the time step may gloss over distances.
-                dead += e.flow();
-                alive -= e.flow();
-                e.setFlow(0);
+            dead += totalInflow;
+            alive -= totalInflow;
+            iter1 = evacFlow.incoming(i).iterator();
+            iter2 = f.incoming(i).iterator();
+            while (iter1.hasNext()) {
+            //for (FlowEdge e : f.incoming(i)) {
+                FlowEdge oldIn = iter1.next();
+                FlowEdge newIn = iter2.next();
+                //dead += oldIn.flow() + newIn.flow();
+                //alive -= oldIn.flow() + newIn.flow();
+                if (oldIn.flow() > oldIn.capacity()) {
+                    newIn.addFlow(oldIn.capacity() - oldIn.flow());
+                }
             }
             return;
         }
@@ -471,12 +502,9 @@ public class Routes {
             //StdOut.println("PEOPLE ARE ESCAPING: " + inFlow); // DEBUG
             escaped += inFlow;
             alive -= inFlow;
-            for (FlowEdge e : f.incoming(i)) {
-                e.setFlow(0); // changed it to set to zero just to see if it works
-            }
             return;
         }
-
+*/
         //if (inFlow > 0)
             //StdOut.println("THESE PEOPLE ARE ALIVE: " + inFlow); // DEBUG
 
@@ -500,7 +528,7 @@ public class Routes {
         double[] outflow = new double[outs];
         double outflowSum = 0;
         for (int j = 0; j < outs; j++) {
-            outflow[j] = inFlow * distribution[j] / sum;
+            outflow[j] = Math.round(inFlow * distribution[j] / sum);
             outflowSum += outflow[j];
         }
         if ((outflowSum < inFlow) && (outs != 0))
