@@ -1,9 +1,5 @@
-/* Routes of Evacuation
- * Author: David Paulk
- * Partners: Allan Jabri and Michael Newman
- * 
+/* Routes.java
  * Compilation: javac Routes.java
- * Execution: java Routes roads.txt
  * 
  * Dependencies:
  * In.java, FlowNetwork.java, ST.java, EdgeWeightedDigraph.java
@@ -18,49 +14,12 @@
  * To efficiently store intersections in a symbol table indexed by
  * coordinate-set keys, Point instances are made and the comparator
  * for the Point class is used to determine when items should be added
- * to or taken out of the symbol table.
- * 
- * The following 3 questions are answered by the graphing analysis:
- * 1- What roads stand out as the best path to take to escape?
- *  > This question can be answered by looking at the shortest
- *    path along the directed graph.  If the graph were to be
- *    undirected, this question could be answered simply by taking
- *    the convex hull of all intersection vertex-points, but since
- *    it is directed, a shortest path finding algorithm must be
- *    implemented after first creating a graphical representation
- *    of the streets and intersections.
- * 
- * 2- What are the bottleneck roads of escape? (Which roads get
- * clogged up first in an evacuation of large enough scale to clog
- * some roads?)
- *  > This question is answered by evacuation analysis using a
- *    Ford-Fulkerson Algorithm, specifically through it's max-flow
- *    and min-cut finding properties.  The road-edges that are
- *    not, according to the Ford-Fulkerson Algorithm, in the min-cut
- *    have reached their bottleneck capacity for a current
- *    road population distribution.
- * 
- * 3- What matters more: the travel capacity of a road, or how close
- * to normal wrt to the explosion radius road's direction is?
- *  > This question can be answered by observing the effects of using
- *    different roadway capacities and different explosion radii in
- *    the simulation portion of the project 'Routes' is a sub-class of.
- *    The importance of capacity and explosion radius are only comparable
- *    within the explosion radius, and they are comparable in importance
- *    there because a smaller radius covers a smaller and more diluted
- *    representation of the total population while road capacity, though
- *    considering the total population along each road-edge, can allow
- *    looser or stricter fluctuation in the magnitutde of evactuation
- *    along each individual road-segment, affecting the whole network.
- *    
- */
-
-/* STUFF TO STILL ADD TO THE CODE (POSSIBLY): 
- *  > SHORTEST PATH FOR BEST PATH OF ESCAPE
- *  > RADIUS OF HAZARD DUE TO DETONATION CHANGING OVER TIME
+ * to or taken out of the symbol table.   
  */
 
 import java.util.Random;
+import java.awt.Font.*;
+import java.util.*;
 
 public class Routes {
     // Intersection data structures
@@ -70,10 +29,10 @@ public class Routes {
     
     private int numIntersections;
     private int numEdges;
-    private int population;
-    private int alive;
-    private int dead;
-    private int escaped;
+    private double population;
+    private double alive;
+    private double dead;
+    private double escaped;
 
     private EdgeWeightedDigraph evacGraph; // weighted graph of road network
     private FlowNetwork evacFlow; // desribes flow of people through routes
@@ -102,7 +61,7 @@ public class Routes {
         // ALERT LINE TESTED AND WORKS
         
         // radius of hazard region and a location of detonation
-        hazardRadius = Double.parseDouble(alert[0]);
+        hazardRadius = 0;
         detX = Double.parseDouble(alert[1]);
         detY = Double.parseDouble(alert[2]);
         det = new Point(detX, detY);
@@ -118,7 +77,7 @@ public class Routes {
         // false is vertical) with respect to the map,
         // 'from-intersection' coordinates, 'to-intersection' 
         // coordinates, road-width, and road-length
-         final int FIELDSIZE = 7;
+        final int FIELDSIZE = 7;
         String[] fields = new String[FIELDSIZE]; // holds input line
         
         // store information provided by input in arrays 
@@ -144,11 +103,7 @@ public class Routes {
             double roadWidth = Double.parseDouble(fields[5]);
             double roadLength = Double.parseDouble(fields[6]);
             double capacity = roadWidth*roadLength;
-            
-            for (int tt = 0; tt < fields.length; tt++) {
-                StdOut.println("fieldval " + tt + ": " + fields[tt]);
-            }
-            
+
             // add to, create or overwrite connection to intersections
             double fromDist = detDist(fromPoint);
             double toDist = detDist(toPoint);
@@ -226,15 +181,16 @@ public class Routes {
             
             joints.put(toPoint, to);
             joints.put(fromPoint, from);
-        }    
+        }
+        this.buildNetwork(joints);
+        //this.evacFlow = new FlowNetwork(evacFlow);
+        this.populate(initPop);
     }
-    
-    
-    
+        
     /*
      * build an edge weighted digraph from intersections in joints ST
      */ 
-    private EdgeWeightedDigraph graph(ST<Point, Intersection> joints) {
+    public EdgeWeightedDigraph graph(ST<Point, Intersection> joints) {
         
         // copying symbol table to modify it *deep copy*
         ST<Point, Intersection> j = new ST<Point, Intersection>();
@@ -259,56 +215,75 @@ public class Routes {
     }
 
     // accessor methods
-    public int getAlive() { return alive; }
-    public int getDead()  { return dead;  }
-    public int getEscaped() { return escaped; }
-    public int getPop() { return population; }
+    public double getAlive() { return alive; }
+    public double getDead()  { return dead;  }
+    public double getEscaped() { return escaped; }
+    public double getPop() { return population; }
 
+    // sums up the flow on the graph
+    public double calculateLiveFlow() {
+        double aliveCounter = 0;
+        for (FlowEdge e : evacFlow.edges()) {
+            aliveCounter += e.flow();
+        }
+        return aliveCounter;
+    }
+
+    // helper method
+    public Point midpoint(double x1, double y1, double x2, double y2)
+    {
+        return new Point(0.5*(x1 + x2), 0.5*(y1 + y2));
+    }
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
         StdDraw.clear();
-        StdDraw.setXscale(-5, 5);
-        StdDraw.setYscale(-5, 5);
-
-        for (Point p : joints.keys()) {
-            Intersection i = joints.get(p);
-            StdDraw.setPenRadius(0.005);
-            StdDraw.point(p.x(), p.y());
-            for (FlowEdge e : i.outEdges) {
+        Point midpoint;
+//        StdDraw.Font f = new Font("SansSerif", Font.PLAIN, 10);
+//        StdDraw.setFont(f);
+        for (int i = 0; i < reverseIndex.size(); i++) {
+            
+            StdDraw.setPenRadius(0.01);
+            StdDraw.point(reverseIndex.get(i).x(), reverseIndex.get(i).y());
+            for (FlowEdge e : evacFlow.outgoing(i)) {
                 StdDraw.setPenRadius(e.capacity()*0.001);
                 StdDraw.setPenColor(StdDraw.BLUE);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
                 StdDraw.setPenRadius(e.flow()*0.001);
                 StdDraw.setPenColor(StdDraw.RED);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                String stats = e.flow() + " / " + e.capacity();
+                midpoint = midpoint(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
+                StdDraw.setPenColor(StdDraw.BLACK);
+                StdDraw.text(midpoint.x(), midpoint.y(), stats);
             }
-            for (FlowEdge e : i.inEdges) {
-                StdDraw.setPenRadius(e.capacity()*0.001);
-                StdDraw.setPenColor(StdDraw.BLUE);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-                StdDraw.setPenRadius(e.flow()*0.001);
-                StdDraw.setPenColor(StdDraw.RED);
-                StdDraw.line(p.x(), p.y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-            }
+//            for (FlowEdge e : evacFlow.incoming(i)) {
+//                StdDraw.setPenRadius(e.capacity()*0.001);
+//                StdDraw.setPenColor(StdDraw.BLUE);
+//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                StdDraw.setPenRadius(e.flow()*0.001);
+//                StdDraw.setPenColor(StdDraw.RED);
+//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                String stats = e.flow() + " / " + e.capacity();
+//                midpoint = midpoint(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
+//                StdDraw.text(midpoint.x(), midpoint.y(), stats);
+//            }
         }
 
         // draws update of hazard-radius with respect to detonation point    
         StdDraw.setPenColor(StdDraw.RED);
         StdDraw.setPenRadius(0.05);
-        //StdDraw.point(0, 0); // is the detonation point always the origin?
-        StdDraw.point(detX, detY);
+        StdDraw.point(0, 0);
 
         StdDraw.setPenRadius(0.025);
-        //StdDraw.circle(0, 0, hazardRadius);
-        StdDraw.circle(detX, detY, hazardRadius);
-        //StdDraw.show(300); // animation can be done in Simulation -- M
+        StdDraw.circle(0, 0, hazardRadius);
+        StdDraw.show(300);
     }
               
     /*
      * create flow network for evacuation directed away from
      * detonation towards safe distance
      */ 
-    private FlowNetwork buildNetwork(ST<Point, Intersection> joints) {
+    public FlowNetwork buildNetwork(ST<Point, Intersection> joints) {
         
         // ****** not sure if we need to do the +2, but its kept until we figure out how to represent escape routes + source
         evacFlow = new FlowNetwork(numIntersections + 2);
@@ -331,37 +306,40 @@ public class Routes {
             }
         }
 
-        /*
         // set explosion and standard draw window to illustrate full magnitude
         exp = new Explosion(5.0); // 5 megaton explosion initialized
         StdDraw.setXscale(-5, 5);
         StdDraw.setYscale(-5, 5);
-        */
-        // Commented out, since draw code belongs in draw(), and explosions are initialized in Simulation
-        // --M
 
         return evacFlow;
     }
     
-    
     /*
      * distribute pseudorandom flow across flow network
+     * (as of now, no safety against going over-capacity in initial
+     *  distribution of population)
      */
-    public void populate(int population) {
+    private void populate(int population) {
         Random rand = new Random();
         Iterable<FlowEdge> list = evacFlow.edges();
-        int ct = 0; // initialize count
+        FlowEdge[] edgeArray = new FlowEdge[evacFlow.E()];
+        int i = 0;
+        for (FlowEdge e : list) {
+            edgeArray[i] = e;
+            i++;
+        }
         
         // add flow to edges until flow represents entire population
-        while (ct < population) {
-            // random int on domain [0, # of vertices)
-            int ind = rand.nextInt(reverseIndex.size() - 1);
+        int added = 0;
+        while (added < population) {
+            // random int on domain [0, # of edges)
+            i = rand.nextInt(edgeArray.length);
             
-            // find number of in-flow edges
-            Intersection sect = joints.get(reverseIndex.get(ind));
-            sect.inFlow++;
-            ct++;
+            // pick an edge and increment its flow
+            edgeArray[i].addFlow(1);
+            added++;
         }
+        StdOut.println("populate has added: " + added); // DEBUG
     }
             
     /*
@@ -373,85 +351,129 @@ public class Routes {
         return Math.sqrt(distSq);
     }
     
-    
     /*
      * probablility function for whether or not smart choice of direction
      * is made at each time step 
      */
     public double awareness(Point p) {
         double rand = Math.random();
-        double desparation = 
+        double desperation = 
             rand*hazardRadius/(hazardRadius + detDist(p));
-        return desparation;
+        return desperation;
     }
     
-
     /*
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
-        StdOut.println("reached nextState");
-        // copy the road network with same vertices/edges/capacity but zero flow
+        //StdOut.println(evacFlow); // DEBUG
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
-
-        ST<Integer, Double> randoms = new ST<Integer, Double>();
-        ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
-
-        for (int i = 0; i < joints.size(); i++) {
-            update(i, randoms, nextFlow);
-        }
-        
-        // refresh ST and flownetwork
-        //joints = nextJoints;
-        //buildNetwork(joints);
-        draw(); // draw updated road network and hazard radius
+        for (int i = 0; i < joints.size(); i++)
+            update(i, nextFlow);
+        evacFlow = nextFlow;
+        //StdOut.println(evacFlow); // DEBUG
     }
     
     /*
      * updates flow incident of a single intersection
      */
-    public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
+    public void update(int i, FlowNetwork f) {
+        double inFlow = 0;
+        double totalInflow = 0;
+        int outs = 0; // out edge count
+        boolean isDead = false;
+        boolean isEscaped = false;
         
-        int inFlow = 0;
-        // sum inflow
-        for (FlowEdge e : evacFlow.incoming(i)) {
-            if (e.flow() > e.capacity()) inFlow += e.capacity();
-            else {
-                inFlow += e.flow();
-            }
-        }
-        
-        // use detDist to determine if people die/flow is eliminated
-        if (detDist(reverseIndex.get(i)) < hazardRadius) {
-            population -= inFlow;
-            for (FlowEdge e : f.incoming(i)) {
-                e.setFlow(0);
-            }
+        double tempdead = 0;
+        double tempescaped = 0;
+
+        // count outgoing edges
+        for (FlowEdge to : f.outgoing(i)) {
+            outs++;
         }
 
-        double distribution;
-        double excess;
-        double delta;
-        double sum;
-        double fractionReceived = 0;
-        // model random traffic
-        for (FlowEdge to : f.outgoing(i)) {
-            sum = 0;
-            fractionReceived = Math.random();
-            for (FlowEdge from : evacFlow.incoming(i)) {
-                // distribution is normalized with 1/sum
-                delta = from.flow()*fractionReceived;
-                to.addFlow(delta);
-                from.addFlow(-1.0*delta);
+        if (detDist(reverseIndex.get(i)) <= hazardRadius)
+            isDead = true;
+        if (detDist(reverseIndex.get(i)) > hazardLimit())
+            isEscaped = true;
+        
+        // sum inflow
+        Iterator<FlowEdge> iter1 = evacFlow.incoming(i).iterator();
+        Iterator<FlowEdge> iter2 = f.incoming(i).iterator();
+        while (iter1.hasNext()) {
+            FlowEdge oldEdge = iter1.next();
+            FlowEdge newEdge = iter2.next();
+                     
+            // put excess flow back onto the incoming edges
+            if (oldEdge.flow() <= oldEdge.capacity() || isDead) {
+                inFlow += oldEdge.flow();
             }
-            
-            // use awareness factor to determine preference in pseudorandom
-            // dispersal of flow
-            
-            // apply incident flow in summation of algorithm and summation
-            // of time-step's effect through input intersection
-            
+            else {
+                inFlow += oldEdge.capacity();
+                newEdge.addFlow(oldEdge.flow() - oldEdge.capacity());;
+            }
+            totalInflow += oldEdge.flow();
         }
+        
+        if (isDead) {
+            tempdead += totalInflow;
+            dead += tempdead;
+            alive -= tempdead;
+            return;
+        }
+
+        if (isEscaped) {
+            escaped += inFlow;
+            alive -= inFlow;
+            return;
+        }
+
+        if (totalInflow == 0)
+            return;
+        
+        double dist; //distribution
+        double sum = 0;
+
+        // calculate the proportion of flow going to each outgoing edge
+        double[] distribution = new double[outs];
+        for (int j = 0; j < outs; j++) {
+            dist = Math.random();
+            distribution[j] = dist;
+            sum += dist;
+        }
+
+        // calculate how much flow goes to each edge out
+        double[] outflow = new double[outs];
+        double outflowSum = 0;
+        for (int j = 0; j < outs; j++) {
+            outflow[j] = Math.floor(inFlow * (distribution[j] / sum));
+            outflowSum += outflow[j];
+        }
+        if ((outflowSum < inFlow) && (outs != 0))
+            outflow[0] += (inFlow - outflowSum);
+        else if (outs == 0) {
+            // send flow back the way it came, if there are no outgoing paths
+            Iterator<FlowEdge> itr1 = evacFlow.incoming(i).iterator();
+            Iterator<FlowEdge> itr2 = f.incoming(i).iterator();
+            while (itr2.hasNext()) {
+                FlowEdge oldEdge = itr1.next();
+                FlowEdge newEdge = itr2.next();
+                if (oldEdge.flow() <= oldEdge.capacity)
+                    newEdge.addFlow(oldEdge.flow());
+                else
+                    newEdge.addFlow(oldEdge.capacity());
+            }
+            return;
+        }
+
+        // model random traffic
+        int counter = 0;
+        for (FlowEdge to : f.outgoing(i)) {
+            to.addFlow(outflow[counter]);
+            counter++;
+        }
+ 
+        // TODO - awareness
     }
     
     /*
@@ -468,7 +490,6 @@ public class Routes {
         FlowNetwork evac = roadNetwork();
         return evacGraph.toString();
     }
-    
     
     /*
      * gives weighted & directed graphical representation of routes
@@ -495,7 +516,7 @@ public class Routes {
      * hazard never goes past 2/3's distance of farthest intersection
      */
     public double hazardLimit() {
-        return detDist(joints.max()) * ( 2 / 3 ) ;
+        return detDist(joints.max()) * (0.67) ;
     }
     
     /* 
@@ -504,39 +525,6 @@ public class Routes {
     public boolean isVulnerable(Point p) {
         return (detDist(p) <= hazardRadius);
     }
-    
-    
-    /*
-     * test method (simulation test)
-     */
-    public static void main(String[] args)
-    {
-        // gives name of file containing data for street routes
-        int population = Integer.parseInt(args[1]);
-        Routes test = new Routes(args[0], population);
-        
-        // build the flow network
-        test.buildNetwork(test.joints);
-        
-        // save, print and draw copy of road network before adding any flow
-        FlowNetwork emptyNetwork = test.roadNetwork();
-        StdOut.println("Flow-empty Network: ");
-        StdOut.println(emptyNetwork.toString());
-        StdOut.println();
-        test.draw();
-        
-        // initialize flow in the road network       
-        test.populate(population); // add randomized initial flow to road network
-        
-        // iterate through time-steps until final scenario has been determined
-        int t = 0;
-        test.setHazardRadius(0);
-        double limit = test.hazardLimit();
-        StdOut.println("hazard limit is: " + test.hazardLimit());
-        for (int i = 0; i < population; i++) {
-            test.nextState();
-            t++;
-            test.setHazardRadius(t);
-        }
-    }
+     
+    public static void main(String[] args) {}
 }

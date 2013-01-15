@@ -1,0 +1,34 @@
+ * 
+ * The following 3 questions are answered by the graphing analysis:
+ * 1- What roads stand out as the best path to take to escape?
+ *  > This question can be answered by looking at the shortest
+ *    path along the directed graph.  If the graph were to be
+ *    undirected, this question could be answered simply by taking
+ *    the convex hull of all intersection vertex-points, but since
+ *    it is directed, a shortest path finding algorithm must be
+ *    implemented after first creating a graphical representation
+ *    of the streets and intersections.
+ * 
+ * 2- What are the bottleneck roads of escape? (Which roads get
+ * clogged up first in an evacuation of large enough scale to clog
+ * some roads?)
+ *  > This question is answered by evacuation analysis using a
+ *    Ford-Fulkerson Algorithm, specifically through it's max-flow
+ *    and min-cut finding properties.  The road-edges that are
+ *    not, according to the Ford-Fulkerson Algorithm, in the min-cut
+ *    have reached their bottleneck capacity for a current
+ *    road population distribution.
+ * 
+ * 3- What matters more: the travel capacity of a road, or how close
+ * to normal wrt to the explosion radius road's direction is?
+ *  > This question can be answered by observing the effects of using
+ *    different roadway capacities and different explosion radii in
+ *    the simulation portion of the project 'Routes' is a sub-class of.
+ *    The importance of capacity and explosion radius are only comparable
+ *    within the explosion radius, and they are comparable in importance
+ *    there because a smaller radius covers a smaller and more diluted
+ *    representation of the total population while road capacity, though
+ *    considering the total population along each road-edge, can allow
+ *    looser or stricter fluctuation in the magnitutde of evactuation
+ *    along each individual road-segment, affecting the whole network.
+ * 
