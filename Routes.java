@@ -389,7 +389,6 @@ public class Routes {
         return desparation;
     }
     
-
     /*
      * update road network by iteratively transfering population flow between roads
      */
@@ -407,14 +406,14 @@ public class Routes {
         // refresh ST and flownetwork
         //joints = nextJoints;
         //buildNetwork(joints);
-        draw(); // draw updated road network and hazard radius
+        //draw(); // draw updated road network and hazard radius -- Commented out bc draw
+        //                                                should be called by Simulation -M
     }
     
     /*
      * updates flow incident of a single intersection
      */
     public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
-        
         int inFlow = 0;
         // sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
@@ -424,9 +423,17 @@ public class Routes {
             }
         }
         
-        // use detDist to determine if people die/flow is eliminated
-        if (detDist(reverseIndex.get(i)) < hazardRadius) {
-            population -= inFlow;
+        // DEBUG -- print hazard radius and distance from detonation origin
+        StdOut.println("intersection " + i);
+        StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
+        StdOut.println("hazard radius: " + hazardRadius);
+
+        // use detDist to determine if people die/flow is eliminated        
+        if (detDist(reverseIndex.get(i)) <= hazardRadius) {
+            //population -= inFlow;
+            StdOut.println("PEOPLE SHOULD BE DYING"); // DEBUG
+            dead += inFlow;
+            alive -= inFlow;
             for (FlowEdge e : f.incoming(i)) {
                 e.setFlow(0);
             }
