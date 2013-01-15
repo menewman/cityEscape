@@ -1,7 +1,7 @@
 /* Runs the simulation of a city's traffic after the detonation
    of a bomb */
 public class Simulation {
-    private final int MAX_ROUNDS = 10000; // max simulation length
+    private static final int MAX_ROUNDS = 10000; // max simulation length
 
     // runs a simulation taking a roadmap file, an initial bomb energy (in megatons),
     //     and an initial population as command-line arguments
@@ -24,14 +24,14 @@ public class Simulation {
             kinetic = 25.0;
 
         // read in the initial population; default to 100000
-        int pop;
+        int initPop;
         if (args.length > 2)
-            pop = Integer.parseInt(args[2]);
+            initPop = Integer.parseInt(args[2]);
         else
-            pop = 100000;
+            initPop = 100000;
 
         // set up a new road system/flow network
-        Routes routes = new Routes(filename, pop);
+        Routes routes = new Routes(filename, initPop);
 
         // create the explosion
         Explosion expl = new Explosion(kinetic); // 25 megaton bomb

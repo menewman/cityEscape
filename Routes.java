@@ -118,7 +118,7 @@ public class Routes {
         // false is vertical) with respect to the map,
         // 'from-intersection' coordinates, 'to-intersection' 
         // coordinates, road-width, and road-length
-         final int FIELDSIZE = 7;
+        final int FIELDSIZE = 7;
         String[] fields = new String[FIELDSIZE]; // holds input line
         
         // store information provided by input in arrays 
