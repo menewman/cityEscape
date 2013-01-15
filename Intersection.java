@@ -69,6 +69,15 @@ public class Intersection implements Comparable<Intersection>
         return this.outFlow;
     }
     
+    public int size(Iterable<FlowEdge> edges) {
+        // find number of in-flow edges
+        int size = 0;
+        for (FlowEdge e : edges) {
+            size++;
+        }
+        return size;
+    }
+    
     // is this Intersection's point smaller than that one?
     // comparing y-coordinates and breaking ties by x-coordinates
     public int compareTo(Intersection that) {

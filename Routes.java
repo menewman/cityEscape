@@ -348,20 +348,12 @@ public class Routes {
         while (ct < population) {
             // random int on domain [0, # of vertices)
             int ind = rand.nextInt(reverseIndex.size() - 1);
-            Queue<FlowEdge> inFlow = joints.get(reverseIndex.get(ind)).inEdges;
-            // edge that gets flow does not matter; all flow is summed in update
-            if (!inFlow.isEmpty()) {
-                FlowEdge e = inFlow.peek();
-                e.addFlow(1);
-                ct++;
-            }
-            /* one-in-(# of edges) chance that person is placed on edge
-            // which eliminates bias of edges that are considered 1st in iteration
-            if (f.from() < e) {
-                f.addFlow(1);
-                ct++;
-            }*/
-        }      
+            
+            // find number of in-flow edges
+            Intersection sect = joints.get(reverseIndex.get(ind));
+            sect.inFlow++;
+            ct++;
+        }
     }
             
     
@@ -392,6 +384,7 @@ public class Routes {
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
+        StdOut.println("reached nextState");
         // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
@@ -526,23 +519,18 @@ public class Routes {
         StdOut.println();
         test.draw();
         
-        // save, print and draw copy of flow-initialized road network       
+        // initialize flow in the road network       
         test.populate(population); // add randomized initial flow to road network
-        FlowNetwork initNetwork = test.roadNetwork();
-        StdOut.println("Flow-initialized Network: ");
-        StdOut.println(initNetwork.toString());
-        StdOut.println();
         
-        /*
         // iterate through time-steps until final scenario has been determined
         int t = 0;
         test.setHazardRadius(0);
         double limit = test.hazardLimit();
-        while (test.hazardRadius < limit) {
+        StdOut.println("hazard limit is: " + test.hazardLimit());
+        for (int i = 0; i < population; i++) {
             test.nextState();
             t++;
             test.setHazardRadius(t);
         }
-        */
     }
 }
