@@ -7,7 +7,7 @@
 // calibrated to match the scale of the roadmap
 
 public class Explosion {
-    private static final double K = 0.001; // shock temperature
+    private static final double K = 0.0001; // shock temperature
     private static final double P = 1.225; // air density in kg/m^3
     private double E; // initial energy of the bomb
 

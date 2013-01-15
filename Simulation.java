@@ -21,7 +21,7 @@ public class Simulation {
         if (args.length > 1)
             kinetic = Double.parseDouble(args[1]);
         else
-            kinetic = 25.0;
+            kinetic = 5.0;
 
         // read in the initial population; default to 100000
         int initPop;

@@ -362,7 +362,8 @@ public class Routes {
             // pick an edge and increment its flow
             edgeArray[i].addFlow(1);
             added++;
-        }      
+        }
+        StdOut.println("populate has added: " + added); // DEBUG
     }
             
     /*
@@ -413,28 +414,21 @@ public class Routes {
             outs++;
             if (e.flow() > e.capacity()) inFlow += e.capacity();
             else {
-                inFlow += e.flow();
-                
+                inFlow += e.flow();        
             }
         }
         
-        // DEBUG -- print hazard radius and distance from detonation origin
-        //StdOut.println("intersection " + i);
-        //StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
-        //StdOut.println("hazard radius: " + hazardRadius);
-
         // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
             // StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             // DEBUG -> this doesn't account for people waiting at overcapacity edges
 
+            dead += inFlow;
+            alive -= inFlow;
             for (FlowEdge e : f.incoming(i)) {
                 // this does it edge by edge and accounts for all cars at the intersection
                 // possible bug; counting for cars at the intersection is delayed because the time step may gloss over distances.
                 // maybe we should have an event queue that allows us to know which radii we HAVE to hit
-                
-                dead += e.flow();
-                alive -= e.flow();
                 e.setFlow(0);
             }
             return;
@@ -446,7 +440,8 @@ public class Routes {
             alive -= inFlow;
             for (FlowEdge e : f.incoming(i)) {
                 // changed it to subtract those that escape so we don't overwrite anything
-                e.addFlow(-1.0*inFlow);
+                //e.addFlow(-1.0*inFlow);
+                e.setFlow(0); // changed it to set to zero just to see if it works
             }
             return;
         }
@@ -488,6 +483,8 @@ public class Routes {
             // of time-step's effect through input intersection
             
         }
+
+        StdOut.println("People just shuffled: " + inFlow); // DEBUG
     }
     
     /*
@@ -540,8 +537,7 @@ public class Routes {
     public boolean isVulnerable(Point p) {
         return (detDist(p) <= hazardRadius);
     }
-    
-    
+     
     /*
      * test method (simulation test)
      */
