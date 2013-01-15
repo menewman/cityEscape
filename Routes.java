@@ -230,6 +230,7 @@ public class Routes {
         }
         populate(initPop);
         this.buildNetwork(joints);
+        this.populate(initPop);
     }
     
     
@@ -352,12 +353,14 @@ public class Routes {
         return evacFlow;
     }
     
-    
     /*
      * distribute pseudorandom flow across flow network
+     * (as of now, no safety against going over-capacity in initial
+     *  distribution of population)
      */
     private void populate(int population) {
         Random rand = new Random();
+<<<<<<< HEAD
         int ct = 0; // initialize count
         
         // add flow to edges until flow represents entire population
@@ -378,6 +381,25 @@ public class Routes {
                 f.addFlow(1);
                 ct++;
             }*/
+=======
+        Iterable<FlowEdge> list = evacFlow.edges();
+        FlowEdge[] edgeArray = new FlowEdge[evacFlow.E()];
+        int i = 0;
+        for (FlowEdge e : list) {
+            edgeArray[i] = e;
+            i++;
+        }
+        
+        // add flow to edges until flow represents entire population
+        int added = 0;
+        while (added < population) {
+            // random int on domain [0, # of edges)
+            i = rand.nextInt(edgeArray.length);
+            
+            // pick an edge and increment its flow
+            edgeArray[i].addFlow(1);
+            added++;
+>>>>>>> 85f6a8f0a00edcec20e61d78309f359e91519555
         }      
     }
             
@@ -418,13 +440,19 @@ public class Routes {
     /*
      * updates flow incident of a single intersection
      */
+<<<<<<< HEAD
     public void update(int i, FlowNetwork f) {
         double inFlow = 0;
         int outs = 0; // out edge count
 // sum inflow
+=======
+    public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
+        int inFlow = 0;
+        int outs = 0; // edge count
+        // sum inflow
+>>>>>>> 85f6a8f0a00edcec20e61d78309f359e91519555
         for (FlowEdge e : evacFlow.incoming(i)) {
             outs++;
-            //StdOut.println("INCOMING EDGE ALERT"); // DEBUG
             if (e.flow() > e.capacity()) inFlow += e.capacity();
             else {
                 inFlow += e.flow();
@@ -433,14 +461,13 @@ public class Routes {
         }
         
         // DEBUG -- print hazard radius and distance from detonation origin
-        StdOut.println("intersection " + i);
-        StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
-        StdOut.println("hazard radius: " + hazardRadius);
+        //StdOut.println("intersection " + i);
+        //StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
+        //StdOut.println("hazard radius: " + hazardRadius);
 
         // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
-            //population -= inFlow;
-            StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
+            // StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             // DEBUG -> this doesn't account for people waiting at overcapacity edges
 
             for (FlowEdge e : f.incoming(i)) {
