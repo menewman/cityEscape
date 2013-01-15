@@ -339,7 +339,7 @@ public class Routes {
     /*
      * distribute pseudorandom flow across flow network
      */
-    public void populate(int population) {
+    private void populate(int population) {
         Random rand = new Random();
         Iterable<FlowEdge> list = evacFlow.edges();
         int ct = 0; // initialize count
