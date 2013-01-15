@@ -446,6 +446,8 @@ public class Routes {
             return;
         }
 
+        // StdOut.println("About to shuffle: " + inFlow); // DEBUG
+
         double dist; //distribution
         double specialK; // if we want to change the range from which random probabilities can be picked (interval for random double)
         double delta;
@@ -484,7 +486,7 @@ public class Routes {
             
         }
 
-        StdOut.println("People just shuffled: " + inFlow); // DEBUG
+        // StdOut.println("People just shuffled: " + inFlow); // DEBUG
     }
     
     /*
@@ -528,7 +530,7 @@ public class Routes {
      * hazard never goes past 2/3's distance of farthest intersection
      */
     public double hazardLimit() {
-        return detDist(joints.max()) * ( 2 / 3 ) ;
+        return detDist(joints.max()) * (0.95) ;
     }
     
     /* 
