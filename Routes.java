@@ -431,15 +431,36 @@ public class Routes {
         if (totalInflow == 0)
             return;
         
-        double dist; //distribution
+        double distr; //distribution
         double sum = 0;
+
+        // find the "best" edge
+        int counter = 0;
+        double bestDist = 0;
+        int bestIndex = -1;
+        for (FlowEdge fe : f.outgoing(i)) {
+            double dist = detDist(reverseIndex.get(fe.to()));
+            if (dist > bestDist) {
+                bestDist = dist;
+                bestIndex = counter;
+            }
+            counter++;
+        }
 
         // calculate the proportion of flow going to each outgoing edge
         double[] distribution = new double[outs];
+        double awareness = awareness(reverseIndex.get(i));
         for (int j = 0; j < outs; j++) {
-            dist = Math.random();
-            distribution[j] = dist;
-            sum += dist;
+            distr = Math.random();
+
+            // we use awareness to calculate the chance that drivers going to a
+            // 'worse' edge will instead choose to go to the 'best' edge
+            double smart = distr * awareness;
+            double dumb = distr - smart;
+
+            distribution[j] += dumb;
+            distribution[bestIndex] += smart;
+            sum += (smart + dumb);
         }
 
         // calculate how much flow goes to each edge out
@@ -467,7 +488,7 @@ public class Routes {
         }
 
         // model random traffic
-        int counter = 0;
+        counter = 0;
         for (FlowEdge to : f.outgoing(i)) {
             to.addFlow(outflow[counter]);
             counter++;
