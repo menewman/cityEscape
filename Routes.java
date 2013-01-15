@@ -62,6 +62,7 @@
 
 import java.util.Random;
 import java.awt.Font.*;
+import java.util.*;
 
 public class Routes {
     // Intersection data structures
@@ -404,11 +405,14 @@ public class Routes {
     public void nextState() {
         // copy the road network with same vertices/edges/capacity but zero flow
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
-
+        
         for (int i = 0; i < joints.size(); i++) {
             update(i, nextFlow);
         }
+        //for (int i = 0; i < evacFlow.V(); i++)
+            //update(i, nextFlow);
 
+        //StdOut.println(nextFlow);
         evacFlow = nextFlow;
     }
     
@@ -420,88 +424,98 @@ public class Routes {
         int outs = 0; // out edge count
         // sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
-            outs++;
-            if (e.flow() > e.capacity()) inFlow += e.capacity();
-            else {
-                inFlow += e.flow();        
-            }
+            // DEBUG <- the below code doesn't account for over-capacity edges,
+            //  but the code previously just didn't do anything with the extra flow!
+            inFlow += e.flow();
         }
+        if (inFlow == 0)
+            return;
         
         // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
-            // StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
+            //StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             // DEBUG -> this doesn't account for people waiting at overcapacity edges
 
             dead += inFlow;
             alive -= inFlow;
-            for (FlowEdge e : f.incoming(i)) {
+            /*for (FlowEdge e : f.incoming(i)) {
                 // this does it edge by edge and accounts for all cars at the intersection
-                // possible bug; counting for cars at the intersection is delayed because the time step may gloss over distances.
-                // maybe we should have an event queue that allows us to know which radii we HAVE to hit
-                e.addFlow(-1.0*e.flow());
-            }
+                // possible bug; counting for cars at the intersection is delayed
+                // because the time step may gloss over distances.
+                e.setFlow(0);
+            }*/
             return;
         }
 
         // have people escaped the city?
         if (detDist(reverseIndex.get(i)) > this.hazardLimit()) {
-            for (FlowEdge e : f.outgoing(i)) {
-                // changed it to subtract those that escape so we don't overwrite anything
-                escaped += e.flow();
-                alive -= e.flow();
-                e.addFlow(-1.0*e.flow());
+            //StdOut.println("PEOPLE ARE ESCAPING: " + inFlow); // DEBUG
+            escaped += inFlow;
+            alive -= inFlow;
+            for (FlowEdge e : f.incoming(i)) {
+                e.setFlow(0); // changed it to set to zero just to see if it works
             }
-            //escaped += inFlow;
-            //alive -= inFlow;
-            //for (FlowEdge e : f.incoming(i)) {
-                // changed it to subtract those that escape so we don't overwrite anything
-                //e.addFlow(-1.0*inFlow);
-               // e.setFlow(0); // changed it to set to zero just to see if it works
-            //}
             return;
         }
 
-        // StdOut.println("About to shuffle: " + inFlow); // DEBUG
+        //if (inFlow > 0)
+            //StdOut.println("THESE PEOPLE ARE ALIVE: " + inFlow); // DEBUG
 
         double dist; //distribution
-        double specialK; // if we want to change the range from which random probabilities can be picked (interval for random double)
+        double specialK; // if we want to change the range from which random probabilities can be picked
         double delta;
         double sum = 0;
         int counter = 0;
         
+        for (FlowEdge to : f.outgoing(i)) {
+            outs++;
+        }
+
         double[] distribution = new double[outs];
-        
+
         // fraction of an incoming street going to each outgoing street
         for (int j = 0; j < outs; j++) {
             dist = Math.random();
             distribution[j] = dist;
             sum += dist;
         }
-        
-        // model random traffic
-        for (FlowEdge from : f.incoming(i)) {
-            counter = 0;
-            if (from.flow() > from.capacity()) delta = from.capacity();
-            else {
-                delta = from.flow();
-            }
 
-            for (FlowEdge to : evacFlow.outgoing(i)) {
+        // calculate how much flow goes to each edge out
+        double[] outflow = new double[outs];
+        double outflowSum = 0;
+        for (int j = 0; j < outs; j++) {
+            outflow[j] = inFlow * distribution[j] / sum;
+            outflowSum += outflow[j];
+        }
+        if ((outflowSum < inFlow) && (outs != 0))
+            outflow[0] += (inFlow - outflowSum);
+        else if ((outflowSum < inFlow) && (outs == 0)) {
+            Iterator<FlowEdge> itr1 = evacFlow.incoming(i).iterator();
+            Iterator<FlowEdge> itr2 = f.incoming(i).iterator();
+            while (itr1.hasNext())
+                itr2.next().setFlow(itr1.next().flow());
+            return;
+        }
+
+        // model random traffic
+        counter = 0;
+        for (FlowEdge to : f.outgoing(i)) {
                 // distribution is normalized with 1/sum
                 
-                from.addFlow(-1.0*delta*distribution[counter]/sum);
-                to.addFlow(delta*distribution[counter]/sum);           
-            }
+                //from.addFlow(-1.0*delta*distribution[counter]/sum);
+                //to.addFlow(delta*distribution[counter]/sum);
+            //StdOut.println("counter: " + counter);
+            to.addFlow(outflow[counter]);
+            counter++;
+        }
             
             // use awareness factor to determine preference in pseudorandom
             // dispersal of flow
             
             // apply incident flow in summation of algorithm and summation
             // of time-step's effect through input intersection
-            
-        }
 
-        // StdOut.println("People just shuffled: " + inFlow); // DEBUG
+        //StdOut.println("People just shuffled: " + inFlow); // DEBUG
     }
     
     /*
@@ -545,7 +559,7 @@ public class Routes {
      * hazard never goes past 2/3's distance of farthest intersection
      */
     public double hazardLimit() {
-        return detDist(joints.max()) * (0.95) ;
+        return detDist(joints.max()) * (0.67) ;
     }
     
     /* 

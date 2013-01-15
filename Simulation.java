@@ -63,8 +63,13 @@ public class Simulation {
             // check other stop conditions?
             //   e.g., bomb radius exceeds max intersection distance,
             //         or all people are killed and/or escaped
-            if (alive == 0)
+            if (alive == 0) {
+                StdOut.println("\nSIMULATION COMPLETE");
+                StdOut.println("Alive:   " + alive);
+                StdOut.println("Dead:    " + dead);
+                StdOut.println("Escaped: " + escaped + '\n');
                 break;
+            }
         }
     }
 }
