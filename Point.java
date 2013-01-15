@@ -1,67 +1,122 @@
 /*************************************************************************
- *  Compilation:  javac Point.java
- *  Execution:    java Point
- *
- *  Immutable data type for 2D points.
- *
- *************************************************************************/
+  * Name: David Paulk and Regina Cai
+  * Login: dpaulk and rrcai
+  * Precept: Friday P01 and Friday P03
+  * Date: October 3, 2012
+  *
+  * Compilation: javac Point.java
+  * Execution: Since this does not have a main method (as per the
+  * API), this is tested using a PointPlotter.java program. 
+  * Dependencies: StdDraw.java
+  * 
+  * Description: An immutable data type for points in the plane.
+  * Can draw the point, draw a line between 2 points, calculate
+  * the slope between 2 points, compare two points lexicographically,
+  * makes a String representation, and has a Comparator. 
+  *
+  *************************************************************************/
 
-public class Point { 
-    private double x;   // Cartesian
-    private double y;   // coordinates
-   
-    // create and initialize a random point in unit square
-    public Point() {
-        this.x = Math.random();
-        this.y = Math.random();
-    }
+import java.util.Comparator;
 
-    // create and initialize a point with given (x, y)
+public class Point implements Comparable<Point> {
+    
+    // Comparator called SLOPE_ORDER, see compare method below
+    public final Comparator<Point> SLOPE_ORDER = new SlopeOrder();
+    
+    private final double x;                             // x coordinate
+    private final double y;                             // y coordinate
+    
+    // create the point (x, y)
     public Point(double x, double y) {
         this.x = x;
         this.y = y;
     }
-
-    // create and initialize a point from input stream
-    public Point(In in) {
-        x = in.readDouble();
-        y = in.readDouble();
+    
+    // return x value of a point
+    public double x() {
+        return this.x;
     }
-
-    // accessor methods  
-    public double x() { return x; }
-    public double y() { return y; }
-
-    // return Euclidean distance between this point and that point
-    public double distanceTo(Point that) {
-        double dx = this.x - that.x;
-        double dy = this.y - that.y;
-        return Math.sqrt(dx*dx + dy*dy);
+    
+    // return y value of a point
+    public double y() {
+        return this.y;
     }
-
-    // draw point using standard draw
+    
+    // plot this point to standard drawing
     public void draw() {
         StdDraw.point(x, y);
     }
-
-    // draw the line from this point to that point
+    
+    // draw line between this and that point to standard drawing
     public void drawTo(Point that) {
         StdDraw.line(this.x, this.y, that.x, that.y);
     }
-
-    // return string representation of this point
+    
+    // slope between this point and that point
+    public double slopeTo(Point that) 
+    {
+        // y-difference between 2 points
+        double yDelta = (that.y - this.y);
+        // x-difference between 2 points
+        double xDelta = (that.x - this.x);      
+        
+        if (yDelta == 0 && xDelta == 0)
+        {
+            // slope is negative infinity if same point
+            return Double.NEGATIVE_INFINITY;    
+        }
+        
+        if (yDelta == 0)
+        {
+            // slope is 0 if horizontal line
+            return 0;                          
+        }
+        
+        if (xDelta == 0)
+        {
+            // slope is positive infinity if vertical line
+            return Double.POSITIVE_INFINITY;     
+        }
+        
+        return (yDelta / xDelta);
+    }
+    
+    // is this point lexicographically smaller than that one?
+    // comparing y-coordinates and breaking ties by x-coordinates
+    public int compareTo(Point that) 
+    {
+        if (this.y > that.y) return +1;
+        else if (this.y < that.y) return -1;
+        // break ties with x-coordinates
+        else if (this.x > that.x) return +1;
+        else if (this.x < that.x) return -1;
+        return 0;
+    }
+    
+    // return String representation of this point
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
-
-
-
-    // test client
-    public static void main(String[] args) {
-        Point p = new Point();
-        System.out.println("p  = " + p);
-        Point q = new Point(0.5, 0.5);
-        System.out.println("q  = " + q);
-        System.out.println("dist(p, q) = " + p.distanceTo(q));
+    
+    // comparator that allows sorting by slope
+    private class SlopeOrder implements Comparator<Point>
+    {
+        public int compare(Point q1, Point q2)
+        {
+            double slope1 = slopeTo(q1);
+            double slope2 = slopeTo(q2);
+            
+            if (slope1 < slope2)
+            {
+                return -1;
+            }
+            
+            if (slope1 > slope2)
+            {
+                return +1;
+            }
+            
+            else return 0;
+        }
     }
 }
