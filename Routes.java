@@ -229,6 +229,7 @@ public class Routes {
         }
 
         this.buildNetwork(joints);
+        this.populate(initPop);
     }
     
     
@@ -337,7 +338,6 @@ public class Routes {
         return evacFlow;
     }
     
-    
     /*
      * distribute pseudorandom flow across flow network
      */
@@ -347,22 +347,11 @@ public class Routes {
         int ct = 0; // initialize count
         
         // add flow to edges until flow represents entire population
-        while (ct < population) {
+        while (ct < population) {i
             // random int on domain [0, # of vertices)
             int ind = rand.nextInt(reverseIndex.size() - 1);
-            Queue<FlowEdge> inFlow = joints.get(reverseIndex.get(ind)).inEdges;
-            // edge that gets flow does not matter; all flow is summed in update
-            if (!inFlow.isEmpty()) {
-                FlowEdge e = inFlow.peek();
-                e.addFlow(1);
-                ct++;
-            }
-            /* one-in-(# of edges) chance that person is placed on edge
-            // which eliminates bias of edges that are considered 1st in iteration
-            if (f.from() < e) {
-                f.addFlow(1);
-                ct++;
-            }*/
+            
+            // pick an edge and increment its flow
         }      
     }
             
@@ -410,7 +399,7 @@ public class Routes {
         int inFlow = 0;
         // sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
-            //StdOut.println("INCOMING EDGE ALERT"); // DEBUG
+            StdOut.println("INCOMING EDGE ALERT: " + e.flow()); // DEBUG
             if (e.flow() > e.capacity()) inFlow += e.capacity();
             else {
                 inFlow += e.flow();
@@ -418,13 +407,12 @@ public class Routes {
         }
         
         // DEBUG -- print hazard radius and distance from detonation origin
-        StdOut.println("intersection " + i);
-        StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
-        StdOut.println("hazard radius: " + hazardRadius);
+        //StdOut.println("intersection " + i);
+        //StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
+        //StdOut.println("hazard radius: " + hazardRadius);
 
         // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
-            //population -= inFlow;
             StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             dead += inFlow;
             alive -= inFlow;
