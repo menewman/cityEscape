@@ -394,7 +394,7 @@ public class Routes {
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
 
         ST<Integer, Double> randoms = new ST<Integer, Double>();
-        ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
+        //ST<Point, Intersection> nextJoints = new ST<Point, Intersection>();
 
         for (int i = 0; i < joints.size(); i++) {
             update(i, randoms, nextFlow);
@@ -408,12 +408,15 @@ public class Routes {
      */
     public void update(int i, ST<Integer, Double> randoms, FlowNetwork f) {
         int inFlow = 0;
-        // sum inflow
+        int outs = 0; // edge count
+// sum inflow
         for (FlowEdge e : evacFlow.incoming(i)) {
+            outs++;
             //StdOut.println("INCOMING EDGE ALERT"); // DEBUG
             if (e.flow() > e.capacity()) inFlow += e.capacity();
             else {
                 inFlow += e.flow();
+                
             }
         }
         
@@ -426,9 +429,15 @@ public class Routes {
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
             //population -= inFlow;
             StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
-            dead += inFlow;
-            alive -= inFlow;
+            // DEBUG -> this doesn't account for people waiting at overcapacity edges
+
             for (FlowEdge e : f.incoming(i)) {
+                // this does it edge by edge and accounts for all cars at the intersection
+                // possible bug; counting for cars at the intersection is delayed because the time step may gloss over distances.
+                // maybe we should have an event queue that allows us to know which radii we HAVE to hit
+                
+                dead += e.flow();
+                alive -= e.flow();
                 e.setFlow(0);
             }
             return;
@@ -439,25 +448,40 @@ public class Routes {
             escaped += inFlow;
             alive -= inFlow;
             for (FlowEdge e : f.incoming(i)) {
-                e.setFlow(0);
+                // changed it to subtract those that escape so we don't overwrite anything
+                e.addFlow(-1.0*inFlow);
             }
             return;
         }
 
-        double distribution;
-        double excess;
+        double dist; //distribution
+        double specialK; // if we want to change the range from which random probabilities can be picked (interval for random double)
         double delta;
-        double sum;
-        double fractionReceived = 0;
+        double sum = 0;
+        int counter = 0;
+        
+        double[] distribution = new double[outs];
+        
+        // fraction of an incoming street going to each outgoing street
+        for (int j = 0; j < outs; j++) {
+            dist = Math.random();
+            distribution[j] = dist;
+            sum += dist;
+        }
+        
         // model random traffic
-        for (FlowEdge to : f.outgoing(i)) {
-            sum = 0;
-            fractionReceived = Math.random();
-            for (FlowEdge from : evacFlow.incoming(i)) {
+        for (FlowEdge from : f.incoming(i)) {
+            counter = 0;
+            if (from.flow() > from.capacity()) delta = from.capacity();
+            else {
+                delta = from.flow();
+            }
+
+            for (FlowEdge to : evacFlow.outgoing(i)) {
                 // distribution is normalized with 1/sum
-                delta = from.flow()*fractionReceived;
-                to.addFlow(delta);
-                from.addFlow(-1.0*delta);
+                
+                from.addFlow(-1.0*delta*distribution[counter]);
+                to.addFlow(delta*distribution[counter]);           
             }
             
             // use awareness factor to determine preference in pseudorandom
