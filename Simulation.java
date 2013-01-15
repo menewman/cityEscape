@@ -55,6 +55,11 @@ public class Simulation {
             int dead = routes.getDead();
             int pop = routes.getPop();
 
+            StdOut.println("round " + i);
+            StdOut.println("Alive:    " + alive);
+            StdOut.println("Dead:     " + dead);
+            StdOut.println("Escaped:  " + escaped + '\n');
+
             // check other stop conditions?
             //   e.g., bomb radius exceeds max intersection distance,
             //         or all people are killed and/or escaped

@@ -32,7 +32,7 @@ public class Intersection implements Comparable<Intersection>
     public Intersection(Intersection north, Intersection south,
                         Intersection east, Intersection west,
                         Point p) {
-        //StdOut.println("Intersection created"); // TESTING
+        StdOut.println("Intersection created"); // TESTING
         this.north = north;
         this.south = south;
         this.east = east;
@@ -41,7 +41,7 @@ public class Intersection implements Comparable<Intersection>
     } 
     // copy constructor
     public Intersection(Intersection i) {
-        //StdOut.println("Intersection copied"); // TESTING
+        StdOut.println("Intersection copied"); // TESTING
         this.north = i.north;
         this.south = i.south;
         this.east = i.east;
