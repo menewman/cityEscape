@@ -1,7 +1,7 @@
 /* Runs the simulation of a city's traffic after the detonation
    of a bomb */
 public class Simulation {
-    private static final int MAX_ROUNDS = 500; // max simulation length
+    private static final int MAX_ROUNDS = 100; // max simulation length
 
     // runs a simulation taking a roadmap file, an initial bomb energy (in megatons),
     //     and an initial population as command-line arguments
@@ -28,7 +28,7 @@ public class Simulation {
         if (args.length > 2)
             initPop = Integer.parseInt(args[2]);
         else
-            initPop = 100;
+            initPop = 200;
 
         // set up a new road system/flow network
         Routes routes = new Routes(filename, initPop);
@@ -42,7 +42,7 @@ public class Simulation {
             double hazardRadius = expl.getRadius(i);
             // update the hazard radius in Routes
             routes.setHazardRadius(hazardRadius);
-
+            //StdOut.println(routes.calculateLiveFlow()); // DEBUG
             routes.nextState();
 
             // visualize results?
@@ -50,6 +50,7 @@ public class Simulation {
             StdDraw.show(300);
 
             // keep a killed/escaped tally?
+            double remainingFlow = routes.calculateLiveFlow();
             double alive = routes.getAlive();
             double escaped = routes.getEscaped();
             double dead = routes.getDead();
@@ -57,14 +58,15 @@ public class Simulation {
             double total = alive+escaped+dead;
 
             StdOut.println("round " + i);
-            StdOut.println("Alive:    " + alive);
-            StdOut.println("Dead:     " + dead);
-            StdOut.println("Escaped:  " + escaped);
-            StdOut.println("Total:    " + total + '\n');
+            StdOut.println("Live Flow: " + remainingFlow);
+            StdOut.println("Alive:     " + alive);
+            StdOut.println("Dead:      " + dead);
+            StdOut.println("Escaped:   " + escaped);
+            StdOut.println("Total:     " + total + '\n');
             // check other stop conditions?
             //   e.g., bomb radius exceeds max intersection distance,
             //         or all people are killed and/or escaped
-            if (alive <= 0) {
+            if (remainingFlow <= 0) {
                 StdOut.println("\nSIMULATION COMPLETE");
                 /*StdOut.println("Alive:   " + alive);
                 StdOut.println("Dead:    " + dead);

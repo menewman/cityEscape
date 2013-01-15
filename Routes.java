@@ -413,10 +413,12 @@ public class Routes {
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
+        //StdOut.println(evacFlow); // DEBUG
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
         for (int i = 0; i < joints.size(); i++)
             update(i, nextFlow);
         evacFlow = nextFlow;
+        //StdOut.println(evacFlow); // DEBUG
     }
     
     /*
@@ -428,7 +430,10 @@ public class Routes {
         int outs = 0; // out edge count
         boolean isDead = false;
         boolean isEscaped = false;
-        //double tempAlive
+        
+        double tempdead = 0;
+        double tempescaped = 0;
+
         if (detDist(reverseIndex.get(i)) <= hazardRadius)
             isDead = true;
         if (detDist(reverseIndex.get(i)) > hazardLimit())
@@ -440,37 +445,39 @@ public class Routes {
         while (iter1.hasNext()) {
             FlowEdge oldEdge = iter1.next();
             FlowEdge newEdge = iter2.next();
-            
+                     
             // put excess flow back onto the incoming edges
             if (oldEdge.flow() <= oldEdge.capacity() || isDead) {
                 inFlow += oldEdge.flow();
-                if (isEscaped && !isDead) {
-                    escaped += oldEdge.flow();
+                /*if (isEscaped && !isDead) {
+                    tempescaped += oldEdge.flow();
                     alive -= oldEdge.flow();
-                }
-                else if (isDead) {
-                    dead += oldEdge.flow();
-                    alive -= oldEdge.flow();
-                }
+                }*/
+                //if (isDead) {
+                    //tempdead += oldEdge.flow();
+                    //alive -= oldEdge.flow();
+                //}
             }
             else {
                 inFlow += oldEdge.capacity();
-                if (isEscaped) {
-                    escaped += oldEdge.flow();
+                /*if (isEscaped) {
+                    tempescaped += oldEdge.flow();
                     alive -= oldEdge.flow();
-                }
+                }*/
                 newEdge.addFlow(oldEdge.flow() - oldEdge.capacity());
             }
             totalInflow += oldEdge.flow();
         }
 
-        // DEBUG
-        //StdOut.println("Total Inflow at intersection " + i + ": " + totalInflow);
-        //"alive change: "
-        //"dead change:  "
-        //"escaped change: "
-        if (isDead || isEscaped)
+        //if (tempescaped != 0 || tempdead != 0)
+            //StdOut.println("Dead, Esc at xsection " + i + ": " + tempdead + " " + tempescaped);
+        
+        if (isDead) {
+            tempdead += totalInflow;
+            dead += tempdead;
+            alive -= tempdead;
             return;
+        }
 
         if (totalInflow == 0)
             return;
@@ -524,22 +531,31 @@ public class Routes {
             sum += dist;
         }
 
+        if (isEscaped) {
+            escaped += inFlow;
+            alive -= inFlow;
+            return;
+        }
+
         // calculate how much flow goes to each edge out
         double[] outflow = new double[outs];
         double outflowSum = 0;
         for (int j = 0; j < outs; j++) {
-            outflow[j] = Math.round(inFlow * distribution[j] / sum);
+            outflow[j] = Math.floor(inFlow * distribution[j] / sum);
             outflowSum += outflow[j];
         }
         if ((outflowSum < inFlow) && (outs != 0))
             outflow[0] += (inFlow - outflowSum);
         else if ((outflowSum < inFlow) && (outs == 0)) {
+            // send flow back the way it came, if there are no outgoing paths
             Iterator<FlowEdge> itr1 = evacFlow.incoming(i).iterator();
             Iterator<FlowEdge> itr2 = f.incoming(i).iterator();
             while (itr2.hasNext())
                 itr2.next().setFlow(itr1.next().flow());
             return;
         }
+
+        //StdOut.println("Outflow at xsection " + i + ": " + outflowSum); // DEBUG
 
         // model random traffic
         int counter = 0;
@@ -558,8 +574,6 @@ public class Routes {
             
             // apply incident flow in summation of algorithm and summation
             // of time-step's effect through input intersection
-
-        //StdOut.println("People just shuffled: " + inFlow); // DEBUG
     }
     
     /*
