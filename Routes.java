@@ -394,9 +394,9 @@ public class Routes {
      */
     public double awareness(Point p) {
         double rand = Math.random();
-        double desparation = 
+        double desperation = 
             rand*hazardRadius/(hazardRadius + detDist(p));
-        return desparation;
+        return desperation;
     }
     
     /*
@@ -423,10 +423,22 @@ public class Routes {
         double inFlow = 0;
         int outs = 0; // out edge count
         // sum inflow
-        for (FlowEdge e : evacFlow.incoming(i)) {
+        Iterator<FlowEdge> iter1 = evacFlow.incoming(i).iterator();
+        Iterator<FlowEdge> iter2 = f.incoming(i).iterator();
+
+        while (iter1.hasNext()) {
+        //for (FlowEdge e : evacFlow.incoming(i)) {
             // DEBUG <- the below code doesn't account for over-capacity edges,
             //  but the code previously just didn't do anything with the extra flow!
-            inFlow += e.flow();
+            FlowEdge oldEdge = iter1.next();
+            FlowEdge newEdge = iter2.next();
+            
+            if (oldEdge.flow() <= oldEdge.capacity())
+                inFlow += oldEdge.flow();
+            else {
+                inFlow += oldEdge.capacity();
+                newEdge.addFlow(oldEdge.flow() - oldEdge.capacity());
+            }
         }
         if (inFlow == 0)
             return;
