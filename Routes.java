@@ -428,15 +428,26 @@ public class Routes {
         StdOut.println("distance from detonation: " + detDist(reverseIndex.get(i)));
         StdOut.println("hazard radius: " + hazardRadius);
 
-        // use detDist to determine if people die/flow is eliminated        
+        // are these people dead?        
         if (detDist(reverseIndex.get(i)) <= hazardRadius) {
             //population -= inFlow;
-            StdOut.println("PEOPLE SHOULD BE DYING"); // DEBUG
+            StdOut.println("PEOPLE SHOULD BE DYING: " + inFlow); // DEBUG
             dead += inFlow;
             alive -= inFlow;
             for (FlowEdge e : f.incoming(i)) {
                 e.setFlow(0);
             }
+            return;
+        }
+
+        // have people escaped the city?
+        if (detDist(reverseIndex.get(i)) > this.hazardLimit()) {
+            escaped += inFlow;
+            alive -= inFlow;
+            for (FlowEdge e : f.incoming(i)) {
+                e.setFlow(0);
+            }
+            return;
         }
 
         double distribution;

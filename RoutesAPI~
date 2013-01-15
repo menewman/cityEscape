@@ -10,6 +10,9 @@ public int getPop()
 // draws intersections, roads
 public void draw()
 
+// distribute pseudorandom flow across flow network
+public void populate(int population)
+
 // distance from detonation to point on plane
 public double detDist(Point p)
 
