@@ -226,7 +226,9 @@ public class Routes {
             
             joints.put(toPoint, to);
             joints.put(fromPoint, from);
-        }    
+        }
+
+        this.buildNetwork(joints);
     }
     
     
