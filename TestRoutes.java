@@ -2,7 +2,7 @@ public class TestRoutes {
 
     public static void main(String[] args) {
         Routes rts = new Routes("unit_length_roads.txt", Integer.parseInt(args[0]));
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 50; i++) {
         rts.draw();
 
         rts.nextState();
