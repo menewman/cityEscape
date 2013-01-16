@@ -43,6 +43,7 @@ public class Routes {
     private double detX; // x-coordinate of detonation
     private double detY; // y-coordinate of detonation
     private Point det; // location of detonation
+    private final int MULT = 6; // multiplier of input capacity to characterize roads
     
     /*
      * creates a graphical evacuation map
@@ -62,6 +63,7 @@ public class Routes {
         
         // radius of hazard region and a location of detonation
         hazardRadius = 0;
+        int mapVersion = Integer.parseInt(alert[0]); // map version
         detX = Double.parseDouble(alert[1]);
         detY = Double.parseDouble(alert[2]);
         det = new Point(detX, detY);
@@ -102,7 +104,7 @@ public class Routes {
             
             double roadWidth = Double.parseDouble(fields[5]);
             double roadLength = Double.parseDouble(fields[6]);
-            double capacity = roadWidth*roadLength;
+            double capacity = roadWidth*roadLength*((double) MULT);
 
             // add to, create or overwrite connection to intersections
             double fromDist = detDist(fromPoint);
@@ -299,7 +301,7 @@ public class Routes {
         }
 
         // set explosion and standard draw window to illustrate full magnitude
-        exp = new Explosion(5.0); // 5 megaton explosion initialized
+        //exp = new Explosion(5.0); // 5 megaton explosion initialized
         StdDraw.setXscale(-5, 5);
         StdDraw.setYscale(-5, 5);
 
@@ -335,7 +337,7 @@ public class Routes {
     }
             
     /*
-     * distance from detonation to given point on coordinate map
+     * distance from detonation's center to given point on coordinate map
      */ 
     public double detDist(Point p) {  
         double distSq = (detX - p.x())*(detX - p.x())
@@ -353,23 +355,23 @@ public class Routes {
             rand*hazardRadius/(hazardRadius + detDist(p));
         return desperation;
     }
-    
+
     /*
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
-        //StdOut.println(evacFlow); // DEBUG
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
-        for (int i = 0; i < joints.size(); i++)
-            update(i, nextFlow);
+        for (int i = 0; i < joints.size(); i++) {
+            double awarenessLevel = awareness(reverseIndex.get(i));
+            update(i, nextFlow, awarenessLevel);
+        }
         evacFlow = nextFlow;
-        //StdOut.println(evacFlow); // DEBUG
     }
     
     /*
      * updates flow incident of a single intersection
      */
-    public void update(int i, FlowNetwork f) {
+    public void update(int i, FlowNetwork f, double awarenessLevel) {
         double inFlow = 0;
         double totalInflow = 0;
         int outs = 0; // out edge count
@@ -441,13 +443,12 @@ public class Routes {
 
         // calculate the proportion of flow going to each outgoing edge
         double[] distribution = new double[outs];
-        double awareness = awareness(reverseIndex.get(i));
         for (int j = 0; j < outs; j++) {
             distr = Math.random();
 
             // we use awareness to calculate the chance that drivers going to a
             // 'worse' edge will instead choose to go to the 'best' edge
-            double smart = distr * awareness;
+            double smart = distr * awarenessLevel;
             double dumb = distr - smart;
 
             distribution[j] += dumb;
