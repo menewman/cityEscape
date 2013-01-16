@@ -43,6 +43,7 @@ public class Routes {
     private double detX; // x-coordinate of detonation
     private double detY; // y-coordinate of detonation
     private Point det; // location of detonation
+    private final int MULT = 6; // multiplier of input capacity to characterize roads
     
     /*
      * creates a graphical evacuation map
@@ -62,6 +63,7 @@ public class Routes {
         
         // radius of hazard region and a location of detonation
         hazardRadius = 0;
+        int mapVersion = Integer.parseInt(alert[0]); // map version
         detX = Double.parseDouble(alert[1]);
         detY = Double.parseDouble(alert[2]);
         det = new Point(detX, detY);
@@ -102,7 +104,7 @@ public class Routes {
             
             double roadWidth = Double.parseDouble(fields[5]);
             double roadLength = Double.parseDouble(fields[6]);
-            double capacity = roadWidth*roadLength;
+            double capacity = roadWidth*roadLength*((double) MULT);
 
             // add to, create or overwrite connection to intersections
             double fromDist = detDist(fromPoint);
