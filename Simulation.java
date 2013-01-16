@@ -7,27 +7,33 @@ public class Simulation {
     //     and an initial population as command-line arguments
     //
     // Usage Example:
-    // java Simulation initPop roadmap.txt 25.0 megatons
+    // java Simulation initPop awareness roadmap.txt megatons
     public static void main(String[] args) {
         int initPop;
         if (args.length > 0)
             initPop = Integer.parseInt(args[0]);
         else
-            initPop = 200;
+            initPop = 300;
         
+        double awareness;
+        if (args.length > 1)
+            awareness = Double.parseDouble(args[1]);
+        else
+            awareness = -1; // -1 means we auto-calculate
+
         // read in a roadmap; default to unit_length test file
         String filename;
-        if (args.length > 1)
-            filename = args[1];
+        if (args.length > 2)
+            filename = args[2];
         else
-            filename = "Routes_Test_Files/unit_length_roads.txt";
+            filename = "unit_length_roads.txt";
 
         // read in the bomb's initial energy in megatons; default to 25.0
         double kinetic;
-        if (args.length > 2)
-            kinetic = Double.parseDouble(args[2]);
+        if (args.length > 3)
+            kinetic = Double.parseDouble(args[3]);
         else
-            kinetic = 10.0;
+            kinetic = 5.0;
 
         // set up a new road system/flow network
         Routes routes = new Routes(filename, initPop);
@@ -41,12 +47,15 @@ public class Simulation {
             double hazardRadius = expl.getRadius(i);
             // update the hazard radius in Routes
             routes.setHazardRadius(hazardRadius);
-            //StdOut.println(routes.calculateLiveFlow()); // DEBUG
-            routes.nextState();
+           
+            if (awareness == -1)
+                routes.nextState();
+            else
+                routes.nextState(awareness);
 
             // visualize results?
-            routes.draw();
-            StdDraw.show(300);
+            //routes.draw();
+            //StdDraw.show(300);
 
             // keep a killed/escaped tally?
             double remainingFlow = routes.calculateLiveFlow();
@@ -56,21 +65,20 @@ public class Simulation {
             double pop = routes.getPop();
             double total = alive+escaped+dead;
 
+            // standardized output
+            //StdOut.println(i + "," + alive + "," + dead + "," + escaped + "," + total + "," + hazardRadius);
+            StdOut.println(escaped);
+
+            /* verbose output
             StdOut.println("round " + i);
             StdOut.println("Live Flow: " + remainingFlow);
             StdOut.println("Alive:     " + alive);
             StdOut.println("Dead:      " + dead);
             StdOut.println("Escaped:   " + escaped);
-            StdOut.println("Total:     " + total + '\n');
-            // check other stop conditions?
-            //   e.g., bomb radius exceeds max intersection distance,
-            //         or all people are killed and/or escaped
+            StdOut.println("Total:     " + total + '\n');*/
+            
+            // stop if everyone is dead/escaped
             if (remainingFlow <= 0) {
-                StdOut.println("\nSIMULATION COMPLETE");
-                /*StdOut.println("Alive:   " + alive);
-                StdOut.println("Dead:    " + dead);
-                StdOut.println("Escaped: " + escaped + '\n');
-                StdOut.println("Total:   " + escaped + '\n');*/
                 break;
             }
         }
