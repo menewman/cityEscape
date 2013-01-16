@@ -538,7 +538,11 @@ public class Routes {
         if (evacFlow == null) throw new RuntimeException("no network");
         return evacFlow;
     }
-    
+    // accessor method for scale
+    public double getScale() {
+        return scale;
+    }
+    // set's hazard radius
     public void setHazardRadius(double r) {
         this.hazardRadius = r;
     }

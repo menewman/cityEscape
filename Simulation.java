@@ -37,7 +37,7 @@ public class Simulation {
 
         // set up a new road system/flow network
         Routes routes = new Routes(filename, initPop);
-
+        StdDraw.setScale(-1.0*routes.getScale(), routes.getScale());
         // create the explosion
         Explosion expl = new Explosion(kinetic); // 25 megaton bomb
 
