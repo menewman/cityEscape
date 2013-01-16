@@ -138,8 +138,7 @@ public class Routes {
             
             // if 'to' intersection not yet found, create node for it
             else {
-                to =
-                    new Intersection(null, null, null, null, toPoint);
+                to = new Intersection(null, null, null, null, toPoint);
                 to.inEdges = new Queue<FlowEdge>();
                 to.outEdges = new Queue<FlowEdge>();
                 joints.put(toPoint, to);
@@ -341,7 +340,7 @@ public class Routes {
             edgeArray[i].addFlow(1);
             added++;
         }
-        StdOut.println("populate has added: " + added); // DEBUG
+        //StdOut.println("populate has added: " + added); // DEBUG
     }
             
     /*
@@ -375,6 +374,16 @@ public class Routes {
         }
         evacFlow = nextFlow;
     }
+
+    // like nextState, but it takes a constant awarenessLevel as an argument
+    public void nextState(double awarenessLevel) {
+        FlowNetwork nextFlow = new FlowNetwork(evacFlow);
+        for (int i = 0; i < joints.size(); i++) {
+            update(i, nextFlow, awarenessLevel);
+        }
+        evacFlow = nextFlow;
+    }
+
     
     /*
      * updates flow incident of a single intersection
