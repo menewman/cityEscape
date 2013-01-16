@@ -7,28 +7,27 @@ public class Simulation {
     //     and an initial population as command-line arguments
     //
     // Usage Example:
-    // java Simulation roadmap.txt 25.0 1000
+    // java Simulation initPop roadmap.txt 25.0 megatons
     public static void main(String[] args) {
+        int initPop;
+        if (args.length > 0)
+            initPop = Integer.parseInt(args[0]);
+        else
+            initPop = 200;
+        
         // read in a roadmap; default to unit_length test file
         String filename;
-        if (args.length > 0)
-            filename = args[0];
+        if (args.length > 1)
+            filename = args[1];
         else
             filename = "Routes_Test_Files/unit_length_roads.txt";
 
         // read in the bomb's initial energy in megatons; default to 25.0
         double kinetic;
-        if (args.length > 1)
-            kinetic = Double.parseDouble(args[1]);
+        if (args.length > 2)
+            kinetic = Double.parseDouble(args[2]);
         else
             kinetic = 10.0;
-
-        // read in the initial population; default to 100000
-        int initPop;
-        if (args.length > 2)
-            initPop = Integer.parseInt(args[2]);
-        else
-            initPop = 200;
 
         // set up a new road system/flow network
         Routes routes = new Routes(filename, initPop);
