@@ -56,21 +56,19 @@ public class Simulation {
             double pop = routes.getPop();
             double total = alive+escaped+dead;
 
+            // standardized output
+            StdOut.println(i + "," + alive + "," + dead + "," + escaped + "," + total);
+
+            /* verbose output
             StdOut.println("round " + i);
             StdOut.println("Live Flow: " + remainingFlow);
             StdOut.println("Alive:     " + alive);
             StdOut.println("Dead:      " + dead);
             StdOut.println("Escaped:   " + escaped);
-            StdOut.println("Total:     " + total + '\n');
-            // check other stop conditions?
-            //   e.g., bomb radius exceeds max intersection distance,
-            //         or all people are killed and/or escaped
+            StdOut.println("Total:     " + total + '\n');*/
+            
+            // stop if everyone is dead/escaped
             if (remainingFlow <= 0) {
-                StdOut.println("\nSIMULATION COMPLETE");
-                /*StdOut.println("Alive:   " + alive);
-                StdOut.println("Dead:    " + dead);
-                StdOut.println("Escaped: " + escaped + '\n');
-                StdOut.println("Total:   " + escaped + '\n');*/
                 break;
             }
         }

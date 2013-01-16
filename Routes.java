@@ -367,6 +367,16 @@ public class Routes {
         }
         evacFlow = nextFlow;
     }
+
+    // like nextState, but it takes a constant awarenessLevel as an argument
+    public void nextState(double awarenessLevel) {
+        FlowNetwork nextFlow = new FlowNetwork(evacFlow);
+        for (int i = 0; i < joints.size(); i++) {
+            update(i, nextFlow, awarenessLevel);
+        }
+        evacFlow = nextFlow;
+    }
+
     
     /*
      * updates flow incident of a single intersection
