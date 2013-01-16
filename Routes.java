@@ -135,8 +135,7 @@ public class Routes {
             
             // if 'to' intersection not yet found, create node for it
             else {
-                to =
-                    new Intersection(null, null, null, null, toPoint);
+                to = new Intersection(null, null, null, null, toPoint);
                 to.inEdges = new Queue<FlowEdge>();
                 to.outEdges = new Queue<FlowEdge>();
                 joints.put(toPoint, to);
@@ -333,7 +332,7 @@ public class Routes {
             edgeArray[i].addFlow(1);
             added++;
         }
-        StdOut.println("populate has added: " + added); // DEBUG
+        //StdOut.println("populate has added: " + added); // DEBUG
     }
             
     /*
@@ -426,11 +425,11 @@ public class Routes {
             return;
         }
 
-//        if (isEscaped) {
-//            escaped += inFlow;
-//            alive -= inFlow;
-//            return;
-//        }
+        if (isEscaped) {
+            escaped += inFlow;
+            alive -= inFlow;
+            return;
+        }
 
         if (totalInflow == 0)
             return;
