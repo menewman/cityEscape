@@ -8,13 +8,20 @@ Due Date: 1/15/2012
 _______________________________________________________________________________________
 
 Approach:
+	Overview-
 	For our project, we wanted to analyze the different factors that affect a large quantity of people fleeing from a hazardous bomb detonation.  We assume for our project that the mass of people are evacuating by vehicle along a series of routes that make up a road network.  This road network consists of roads, intersections, and a detonation site.  Given this scenario, we implemented different classes describing the map of roadways, randomized flow of evacuators along them, simulation with the ability to change population, awareness and speed parameters, and visualization of the flow of evacuators after detonation as the radius of hazard due to the explosion grows.
 
+	Simulation Model-
+	Our Simulation runs instances of Routes.java and Explosion.java to create microscopic simulation models of evacuation, meaning that at each update
+	of flow along the road networks, each individual person is simulated with probabilistic tendencies based on their distance from danger.  All units
+	of pedestrian flow are accounted for by using queues to track which Intersections people are leaving and which Intersections they are traveling to,
+	or more simply put, which roads they are traveling along.  The simulation of evacuation is a time-driven, and can be run for various parameter values.  The population can be any such that its value does not exceed the total capacity of the road network, in which case there could be no movement of flow, and everyone in the population would consequently be wiped out by the Explosion instance.
+
+	Roadway Characteristics-
 	The roads in this evacuation simulation are edges with values for flow, capacity, a 'to'-node and a 'from'-node.  These nodes that characterize the
 	beginning and the end of a road-edge are Intersection nodes.  These Intersection nodes are a class of Objects that contain a Point Object-type coordinate pair, a queue for the flow of edges directed at the Intersection, and a queue for the flow of edges directed away from the Intersection.  The detonation site is simply a coordinate pair at which the Explosion instance is centered at its creation, upon which the 'safe-zone' transgresses from embodying the entire road network to embodying none of the road network.  By the time that the hazard radius has expanded past all reachable edges and vertices in the road network, the instance of Simulation for that particular input terminates, and the numbers of dead and alive people post-Explosion in the population are tallied.  For these tallies, the dead group consists of all flow that was surpassed by the radius of hazard before it could reach the virtual sink of the flow network (city limits, where there are no further edges from the detonation site/ origin).
 
-	The simulation of evacuation is a time-driven, and can be run for various parameter values.  The population can be any such that its value does not exceed the total capacity of the road network, in which case there could be no movement of flow, and everyone in the population would consequently be wiped out by the Explosion instance.
-
+	Time Increments-
 	The evacuation process along the road network is illustrated in parallel with the expansion of the hazard radius about the detonation site.  The visualization of these two things are crucial because they both involve algorithms specific to the road network characteristics and other parameter inputs. The evacuation process involves several parameter-sensitive algorithms, including flow updates and an 'awareness factor' relating to the path decision-making of people along various roads depending on the distance of the closest point on the hazard radius circle.  The expansion of the hazard radius given by the output of Explosion is also a parameter-sensitive algorithm, being a function that is both dependent of input 't' and non-linear.
 
 _______________________________________________________________________________________
