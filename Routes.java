@@ -363,25 +363,17 @@ public class Routes {
             rand*hazardRadius/(hazardRadius + detDist(p));
         return desperation;
     }
-    
-    /*
-     *
-     *
-     */
-    public double 
 
     /*
      * update road network by iteratively transfering population flow between roads
      */
     public void nextState() {
-        //StdOut.println(evacFlow); // DEBUG
         FlowNetwork nextFlow = new FlowNetwork(evacFlow);
         for (int i = 0; i < joints.size(); i++) {
             double awarenessLevel = awareness(reverseIndex.get(i));
             update(i, nextFlow, awarenessLevel);
         }
         evacFlow = nextFlow;
-        //StdOut.println(evacFlow); // DEBUG
     }
     
     /*
@@ -459,13 +451,12 @@ public class Routes {
 
         // calculate the proportion of flow going to each outgoing edge
         double[] distribution = new double[outs];
-        double awareness = awareness(reverseIndex.get(i));
         for (int j = 0; j < outs; j++) {
             distr = Math.random();
 
             // we use awareness to calculate the chance that drivers going to a
             // 'worse' edge will instead choose to go to the 'best' edge
-            double smart = distr * awareness;
+            double smart = distr * awarenessLevel;
             double dumb = distr - smart;
 
             distribution[j] += dumb;
