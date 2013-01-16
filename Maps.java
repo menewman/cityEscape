@@ -1,20 +1,23 @@
 public class Maps{
     public static void main(String[] args) {
-        StdOut.println("69 0 0");
         int d = Integer.parseInt(args[0]);
+        StdOut.println("69 0 0 " + d);
+        
         
         for (int j = -d; j < d + 1; j++) {
                     for (int i = -d; i < d; i++) {
                         StdOut.println("true" + " " + (i) + " " + j + " " + (1 + i) + " " + j + " " + "1" + " " + "1" + " " + "15");
-                        StdOut.println("true" + " " + (i) + " " + j + " " + (1 + i) + " " + j + " " + "1" + " " + "1" + " " + "15");
+                        StdOut.println("true" + " " + (i+1) + " " + j + " " + (i) + " " + j + " " + "1" + " " + "1" + " " + "15");
                     }
         }
         
         for (int i = -d; i < d + 1; i++) {
             for (int j = -d; j < d; j++) {
                         StdOut.println("false" + " " + (i) + " " + (j) + " " + (i) + " " + (j+1) + " " + "1" + " " + "1" + " " + "15");
+                        StdOut.println("false" + " " + (i) + " " + (j+1) + " " + (i) + " " + (j) + " " + "1" + " " + "1" + " " + "15");
             }
         }
+
         
 //    int N = Integer.parseInt(args[0]);
 //    boolean orientation = true;
