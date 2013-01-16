@@ -447,7 +447,7 @@ public class Routes {
 
         // find the "best" edge
         int counter = 0;
-        double bestDist = 0;
+        double bestDist = -100;
         int bestIndex = -1;
         for (FlowEdge fe : f.outgoing(i)) {
             double dist = detDist(reverseIndex.get(fe.to()));

@@ -54,8 +54,8 @@ public class Simulation {
                 routes.nextState(awareness);
 
             // visualize results?
-            //routes.draw();
-            //StdDraw.show(300);
+            routes.draw();
+            StdDraw.show(300);
 
             // keep a killed/escaped tally?
             double remainingFlow = routes.calculateLiveFlow();
@@ -66,8 +66,8 @@ public class Simulation {
             double total = alive+escaped+dead;
 
             // standardized output
-            //StdOut.println(i + "," + alive + "," + dead + "," + escaped + "," + total + "," + hazardRadius);
-            StdOut.println(escaped);
+            StdOut.println(i + "," + alive + "," + dead + "," + escaped + "," + total + "," + hazardRadius);
+            //StdOut.println(escaped);
 
             /* verbose output
             StdOut.println("round " + i);
