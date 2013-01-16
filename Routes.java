@@ -259,17 +259,6 @@ public class Routes {
                 
                 StdDraw.text(midpoint.x(), midpoint.y(), stats);
             }
-//            for (FlowEdge e : evacFlow.incoming(i)) {
-//                StdDraw.setPenRadius(e.capacity()*0.001);
-//                StdDraw.setPenColor(StdDraw.BLUE);
-//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
-//                StdDraw.setPenRadius(e.flow()*0.001);
-//                StdDraw.setPenColor(StdDraw.RED);
-//                StdDraw.line(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
-//                String stats = e.flow() + " / " + e.capacity();
-//                midpoint = midpoint(reverseIndex.get(e.from()).x(), reverseIndex.get(e.from()).y(), reverseIndex.get(i).x(), reverseIndex.get(i).y());
-//                StdDraw.text(midpoint.x(), midpoint.y(), stats);
-//            }
         }
 
         // draws update of hazard-radius with respect to detonation point    
