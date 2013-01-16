@@ -42,6 +42,7 @@ public class Routes {
     private double hazardRadius; // radius of danger
     private double detX; // x-coordinate of detonation
     private double detY; // y-coordinate of detonation
+    private double scale; // scale for drawing
     private Point det; // location of detonation
     private final int MULT = 6; // multiplier of input capacity to characterize roads
     
@@ -66,6 +67,8 @@ public class Routes {
         int mapVersion = Integer.parseInt(alert[0]); // map version
         detX = Double.parseDouble(alert[1]);
         detY = Double.parseDouble(alert[2]);
+        scale = Double.parseDouble(alert[3]);
+        StdDraw.setScale(-scale, scale);
         det = new Point(detX, detY);
         
         // intersections indexed by coordinate's distance from detonation
@@ -188,7 +191,10 @@ public class Routes {
         //this.evacFlow = new FlowNetwork(evacFlow);
         this.populate(initPop);
     }
-        
+    // flownetwork accessor method
+    public FlowNetwork getEvacFlow(){
+        return this.evacFlow;
+    }
     /*
      * build an edge weighted digraph from intersections in joints ST
      */ 
@@ -238,17 +244,17 @@ public class Routes {
     }
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
-        StdDraw.setScale(-5, 5);
+        //StdDraw.setScale(-10, 10);
         StdDraw.clear(StdDraw.BLACK);
         StdDraw.setPenColor(StdDraw.WHITE);
         Point midpoint;
-//        StdDraw.setCanvasSize(800, 600);
+        
 //        StdDraw.Font f = new Font("SansSerif", Font.PLAIN, 10);
 //        StdDraw.setFont(f);
         for (int i = 0; i < reverseIndex.size(); i++) {
             
             StdDraw.setPenRadius(0.01);
-            StdDraw.point(reverseIndex.get(i).x(), reverseIndex.get(i).y());
+            
             for (FlowEdge e : evacFlow.outgoing(i)) {
                 StdDraw.setPenColor(StdDraw.GRAY);
                 StdDraw.setPenRadius(e.capacity()*0.005);
@@ -261,6 +267,8 @@ public class Routes {
                 
                 StdDraw.text(midpoint.x(), midpoint.y(), stats);
             }
+            StdDraw.setPenColor(StdDraw.WHITE);
+            StdDraw.point(reverseIndex.get(i).x(), reverseIndex.get(i).y());
         }
 
         // draws update of hazard-radius with respect to detonation point    
@@ -416,11 +424,11 @@ public class Routes {
             return;
         }
 
-//        if (isEscaped) {
-//            escaped += inFlow;
-//            alive -= inFlow;
-//            return;
-//        }
+        if (isEscaped) {
+            escaped += inFlow;
+            alive -= inFlow;
+            return;
+        }
 
         if (totalInflow == 0)
             return;
