@@ -33,7 +33,7 @@ public class Simulation {
         if (args.length > 3)
             kinetic = Double.parseDouble(args[3]);
         else
-            kinetic = 10.0;
+            kinetic = 5.0;
 
         // set up a new road system/flow network
         Routes routes = new Routes(filename, initPop);
@@ -47,8 +47,11 @@ public class Simulation {
             double hazardRadius = expl.getRadius(i);
             // update the hazard radius in Routes
             routes.setHazardRadius(hazardRadius);
-            //StdOut.println(routes.calculateLiveFlow()); // DEBUG
-            routes.nextState();
+           
+            if (awareness == -1)
+                routes.nextState();
+            else
+                routes.nextState(awareness);
 
             // visualize results?
             routes.draw();
