@@ -236,8 +236,11 @@ public class Routes {
     }
     // draws intersections and roads, with thickness proportional to capacity
     public void draw() {
-        StdDraw.clear();
+        StdDraw.setScale(-5, 5);
+        StdDraw.clear(StdDraw.BLACK);
+        StdDraw.setPenColor(StdDraw.WHITE);
         Point midpoint;
+//        StdDraw.setCanvasSize(800, 600);
 //        StdDraw.Font f = new Font("SansSerif", Font.PLAIN, 10);
 //        StdDraw.setFont(f);
         for (int i = 0; i < reverseIndex.size(); i++) {
@@ -245,15 +248,15 @@ public class Routes {
             StdDraw.setPenRadius(0.01);
             StdDraw.point(reverseIndex.get(i).x(), reverseIndex.get(i).y());
             for (FlowEdge e : evacFlow.outgoing(i)) {
-                StdDraw.setPenRadius(e.capacity()*0.001);
-                StdDraw.setPenColor(StdDraw.BLUE);
+                StdDraw.setPenColor(StdDraw.GRAY);
+                StdDraw.setPenRadius(e.capacity()*0.005);
                 StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-                StdDraw.setPenRadius(e.flow()*0.001);
-                StdDraw.setPenColor(StdDraw.RED);
+                StdDraw.setPenColor(StdDraw.WHITE);
+                StdDraw.setPenRadius(e.flow()*0.005);
                 StdDraw.line(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
                 String stats = e.flow() + " / " + e.capacity();
                 midpoint = midpoint(reverseIndex.get(i).x(), reverseIndex.get(i).y(), reverseIndex.get(e.to()).x(), reverseIndex.get(e.to()).y());
-                StdDraw.setPenColor(StdDraw.BLACK);
+                
                 StdDraw.text(midpoint.x(), midpoint.y(), stats);
             }
 //            for (FlowEdge e : evacFlow.incoming(i)) {
@@ -270,11 +273,11 @@ public class Routes {
         }
 
         // draws update of hazard-radius with respect to detonation point    
-        StdDraw.setPenColor(StdDraw.RED);
-        StdDraw.setPenRadius(0.05);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.setPenRadius(0.005);
         StdDraw.point(0, 0);
 
-        StdDraw.setPenRadius(0.025);
+        StdDraw.setPenRadius(0.0025);
         StdDraw.circle(0, 0, hazardRadius);
         StdDraw.show(300);
     }
@@ -422,11 +425,11 @@ public class Routes {
             return;
         }
 
-        if (isEscaped) {
-            escaped += inFlow;
-            alive -= inFlow;
-            return;
-        }
+//        if (isEscaped) {
+//            escaped += inFlow;
+//            alive -= inFlow;
+//            return;
+//        }
 
         if (totalInflow == 0)
             return;
